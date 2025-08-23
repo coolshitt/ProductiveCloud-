@@ -525,9 +525,70 @@
             <section id="analyticsView" class="view-section">
                 <div class="analytics-container">
                     <div class="view-header">
-                        <h2>Productivity Analytics</h2>
+                        <h2>📊 Productivity Analytics</h2>
                         <p>Track your progress and identify patterns</p>
                     </div>
+                    
+                    <!-- DATA MANAGEMENT SECTION IN ANALYTICS -->
+                    <div class="data-management-analytics">
+                        <div class="data-header">
+                            <h3>💾 Data Management & Backup</h3>
+                            <p>Backup and restore your productivity data (works offline!)</p>
+                        </div>
+                        
+                        <div class="data-cards">
+                            <div class="data-card-analytics export-card">
+                                <div class="card-icon">💾</div>
+                                <h4>Export Data</h4>
+                                <p>Download a complete backup of all your habits, progress, and settings</p>
+                                <button class="btn-analytics export-btn-analytics" onclick="exportData()">
+                                    <span class="btn-icon">💾</span>
+                                    Export Now
+                                </button>
+                            </div>
+                            
+                            <div class="data-card-analytics import-card">
+                                <div class="card-icon">📁</div>
+                                <h4>Import Data</h4>
+                                <p>Restore your data from a previous backup file</p>
+                                <button class="btn-analytics import-btn-analytics" onclick="importData()">
+                                    <span class="btn-icon">📁</span>
+                                    Import Backup
+                                </button>
+                            </div>
+                            
+                            <div class="data-card-analytics clear-card">
+                                <div class="card-icon">🗑️</div>
+                                <h4>Clear All Data</h4>
+                                <p>Reset everything and start fresh (WARNING: irreversible!)</p>
+                                <button class="btn-analytics clear-btn-analytics" onclick="clearAllData()">
+                                    <span class="btn-icon">🗑️</span>
+                                    Clear All
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="data-info-analytics">
+                            <h4>📋 How It Works</h4>
+                            <ul>
+                                <li><strong>Export:</strong> Creates a JSON file with all your data</li>
+                                <li><strong>Import:</strong> Restores your data from a backup file</li>
+                                <li><strong>Offline:</strong> Works completely without internet</li>
+                                <li><strong>Safe:</strong> Validates backup files before importing</li>
+                            </ul>
+                            
+                            <div class="data-tips-analytics">
+                                <h5>💡 Tips</h5>
+                                <ul>
+                                    <li>Export your data regularly to keep backups</li>
+                                    <li>Store backup files in a safe location</li>
+                                    <li>Import backups when switching devices</li>
+                                    <li>Use this system when OAuth isn't working</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <div class="analytics-content">
                         <p>Analytics coming soon...</p>
                     </div>
@@ -1431,6 +1492,202 @@
                 padding: 12px 24px;
                 font-size: 1.1em;
                 min-width: 140px;
+            }
+        }
+        
+        /* DATA MANAGEMENT IN ANALYTICS TAB */
+        .data-management-analytics {
+            background: var(--bg-secondary, #f8f9fa);
+            border-radius: 15px;
+            padding: 30px;
+            margin: 30px 0;
+            border: 2px solid var(--border-color, #e0e0e0);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        
+        .data-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .data-header h3 {
+            color: var(--text-primary, #333);
+            font-size: 1.8em;
+            margin: 0 0 12px 0;
+            font-weight: 600;
+        }
+        
+        .data-header p {
+            color: var(--text-secondary, #666);
+            font-size: 1.1em;
+            margin: 0;
+        }
+        
+        .data-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .data-card-analytics {
+            background: white;
+            border: 2px solid var(--border-color, #e0e0e0);
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .data-card-analytics:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        
+        .card-icon {
+            font-size: 3.5em;
+            margin-bottom: 16px;
+        }
+        
+        .data-card-analytics h4 {
+            margin: 0 0 12px 0;
+            color: var(--text-primary, #333);
+            font-size: 1.3em;
+            font-weight: 600;
+        }
+        
+        .data-card-analytics p {
+            color: var(--text-secondary, #666);
+            margin-bottom: 20px;
+            line-height: 1.5;
+            font-size: 0.95em;
+        }
+        
+        .btn-analytics {
+            background: var(--bg-primary, #fff);
+            border: 2px solid;
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 140px;
+            justify-content: center;
+        }
+        
+        .btn-analytics:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+        .export-btn-analytics {
+            color: #28a745;
+            border-color: #28a745;
+        }
+        
+        .export-btn-analytics:hover {
+            background: #28a745;
+            color: white;
+        }
+        
+        .import-btn-analytics {
+            color: #17a2b8;
+            border-color: #17a2b8;
+        }
+        
+        .import-btn-analytics:hover {
+            background: #17a2b8;
+            color: white;
+        }
+        
+        .clear-btn-analytics {
+            color: #dc3545;
+            border-color: #dc3545;
+        }
+        
+        .clear-btn-analytics:hover {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .export-card {
+            border-color: #28a745;
+        }
+        
+        .import-card {
+            border-color: #17a2b8;
+        }
+        
+        .clear-card {
+            border-color: #dc3545;
+        }
+        
+        .data-info-analytics {
+            background: var(--bg-primary, #fff);
+            border-radius: 12px;
+            padding: 25px;
+            border: 1px solid var(--border-color, #e0e0e0);
+        }
+        
+        .data-info-analytics h4 {
+            color: var(--text-primary, #333);
+            margin: 0 0 16px 0;
+            font-size: 1.3em;
+            font-weight: 600;
+        }
+        
+        .data-info-analytics ul {
+            color: var(--text-secondary, #666);
+            line-height: 1.6;
+            margin-bottom: 20px;
+            padding-left: 20px;
+        }
+        
+        .data-tips-analytics {
+            background: var(--bg-secondary, #f8f9fa);
+            border-radius: 8px;
+            padding: 20px;
+            border-left: 4px solid #17a2b8;
+        }
+        
+        .data-tips-analytics h5 {
+            color: var(--text-primary, #333);
+            margin: 0 0 12px 0;
+            font-size: 1.1em;
+        }
+        
+        .data-tips-analytics ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        
+        .btn-icon {
+            font-size: 1.1em;
+        }
+        
+        /* Mobile responsive for analytics data management */
+        @media (max-width: 768px) {
+            .data-management-analytics {
+                padding: 20px;
+                margin: 20px 0;
+            }
+            
+            .data-cards {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .data-card-analytics {
+                padding: 20px;
+            }
+            
+            .card-icon {
+                font-size: 3em;
             }
         }
     </style>
