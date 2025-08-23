@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project CRM - Productive Cloud</title>
+    <link rel="stylesheet" href="crm-styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body data-theme="light">
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="loading-screen">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <h2>Loading Project CRM...</h2>
+        </div>
+    </div>
+
+    <!-- App Container -->
+    <div id="appContainer" class="app-container" style="display: none;">
+        <!-- Header -->
+        <header class="main-header">
+            <div class="header-content">
+                <div class="header-left">
+                    <h1 class="app-title">📊 Project CRM</h1>
+                    <a href="index.html" class="btn btn-secondary back-button">
+                        ← Back to Productive Cloud
+                    </a>
+                </div>
+                <div class="header-right">
+                    <button id="openTimer" class="timer-button" aria-label="Open Work Timer" title="Work Timer">
+                        <span class="timer-icon">⏱️</span>
+                    </button>
+                    <button id="themeToggle" class="theme-toggle" aria-label="Toggle theme">
+                        <span class="theme-icon">🌙</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Breadcrumb Navigation -->
+            <nav class="breadcrumb-nav">
+                <a href="index.html" class="breadcrumb-link">🏠 Productive Cloud</a>
+                <span class="breadcrumb-separator">→</span>
+                <span class="breadcrumb-current">📊 Project CRM</span>
+            </nav>
+
+            <!-- CRM Dashboard -->
+            <section class="crm-section">
+                <div class="section-header">
+                    <h2>Project Progress Overview</h2>
+                    <button id="addProjectBtn" class="btn btn-primary">+ Add Project</button>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">📋</div>
+                        <div class="stat-content">
+                            <h3 id="totalProjects">0</h3>
+                            <p>Total Projects</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🚀</div>
+                        <div class="stat-content">
+                            <h3 id="activeProjects">0</h3>
+                            <p>Active Projects</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">✅</div>
+                        <div class="stat-content">
+                            <h3 id="completedProjects">0</h3>
+                            <p>Completed</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📈</div>
+                        <div class="stat-content">
+                            <h3 id="avgProgress">0%</h3>
+                            <p>Avg Progress</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">💰</div>
+                        <div class="stat-content">
+                            <h3 id="totalEarnings">$0</h3>
+                            <p>Total Earnings</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Projects List -->
+                <div class="projects-container">
+                    <div class="projects-header">
+                        <h3>Your Projects</h3>
+                        <div class="filters">
+                            <select id="statusFilter">
+                                <option value="all">All Status</option>
+                                <option value="planning">Planning</option>
+                                <option value="active">Active</option>
+                                <option value="review">Review</option>
+                                <option value="completed">Completed</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="projectsList" class="projects-list">
+                        <!-- Projects will be populated here -->
+                    </div>
+
+                    <!-- Empty State -->
+                    <div id="emptyState" class="empty-state" style="display: none;">
+                        <div class="empty-content">
+                            <div class="empty-icon">📂</div>
+                            <h3>No Projects Yet</h3>
+                            <p>Start tracking your project progress!</p>
+                            <button class="btn btn-primary" onclick="document.getElementById('addProjectBtn').click()">
+                                Create Your First Project
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Project Modal -->
+    <div id="projectModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Add New Project</h3>
+                <button id="closeModal" class="modal-close">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="projectName">Project Name</label>
+                    <input type="text" id="projectName" placeholder="Enter project name" required>
+                </div>
+                <div class="form-group">
+                    <label for="projectStatus">Status</label>
+                    <select id="projectStatus">
+                        <option value="planning">Planning</option>
+                        <option value="active">Active</option>
+                        <option value="review">Review</option>
+                        <option value="completed">Completed</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="projectProgress">Progress (%)</label>
+                    <input type="range" id="projectProgress" min="0" max="100" value="0">
+                    <span id="progressValue">0%</span>
+                </div>
+                <div class="form-group">
+                    <label for="projectCost">Project Cost/Earnings ($)</label>
+                    <input type="number" id="projectCost" placeholder="Enter project cost or earnings" min="0" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label for="projectNotes">Notes</label>
+                    <textarea id="projectNotes" placeholder="Project description or notes" rows="3"></textarea>
+                </div>
+
+                <!-- Tasks Section in Project Modal -->
+                <div class="tasks-section-modal">
+                    <h4>Tasks</h4>
+                    <div id="tasksListInModal">
+                        <!-- Tasks will be populated here -->
+                    </div>
+                    <button id="addTaskInModal" class="btn btn-secondary">+ Add Task</button>
+                    
+                    <!-- Task Form -->
+                    <div id="taskFormInModal" style="display: none;">
+                        <h5>Add/Edit Task</h5>
+                        <div class="form-group">
+                            <label for="taskNameInModal">Task Name</label>
+                            <input type="text" id="taskNameInModal" placeholder="Enter task name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="taskDescriptionInModal">Description</label>
+                            <textarea id="taskDescriptionInModal" placeholder="Task description" rows="2"></textarea>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="taskPriorityInModal">Priority</label>
+                                <select id="taskPriorityInModal">
+                                    <option value="low">Low</option>
+                                    <option value="medium" selected>Medium</option>
+                                    <option value="high">High</option>
+                                    <option value="urgent">Urgent</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="taskStatusInModal">Status</label>
+                                <select id="taskStatusInModal">
+                                    <option value="todo">To Do</option>
+                                    <option value="in-progress">In Progress</option>
+                                    <option value="review">Review</option>
+                                    <option value="done">Done</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="taskDueDateInModal">Due Date</label>
+                            <input type="date" id="taskDueDateInModal">
+                        </div>
+                                                    <div class="task-form-actions">
+                                <button id="saveTaskInModal" class="btn btn-primary">Save Task</button>
+                                <button id="cancelTaskInModal" class="btn btn-secondary">Cancel</button>
+                            </div>
+                        </div>
+                        
+                        <!-- Task Form -->
+                        <div id="subtaskFormInModal" style="display: none;">
+                            <h5>Add/Edit Subtask</h5>
+                            <div class="form-group">
+                                <label for="subtaskNameInModal">Subtask Name</label>
+                                <input type="text" id="subtaskNameInModal" placeholder="Enter subtask name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="subtaskDescriptionInModal">Description</label>
+                                <textarea id="subtaskDescriptionInModal" placeholder="Subtask description" rows="2"></textarea>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="subtaskPriorityInModal">Priority</label>
+                                    <select id="subtaskPriorityInModal">
+                                        <option value="low">Low</option>
+                                        <option value="medium" selected>Medium</option>
+                                        <option value="high">High</option>
+                                        <option value="urgent">Urgent</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="subtaskStatusInModal">Status</label>
+                                    <select id="subtaskStatusInModal">
+                                        <option value="todo">To Do</option>
+                                        <option value="in-progress">In Progress</option>
+                                        <option value="review">Review</option>
+                                        <option value="done">Done</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="subtaskDueDateInModal">Due Date</label>
+                                <input type="date" id="subtaskDueDateInModal">
+                            </div>
+                            <div class="task-form-actions">
+                                <button id="saveSubtaskInModal" class="btn btn-primary">Save Subtask</button>
+                                <button id="cancelSubtaskInModal" class="btn btn-secondary">Cancel</button>
+                            </div>
+                    </div>
+
+                    <!-- Subtask Form -->
+                    <div id="subtaskFormInModal" style="display: none;">
+                        <h5>Add/Edit Subtask</h5>
+                        <div class="form-group">
+                            <label for="subtaskNameInModal">Subtask Name</label>
+                            <input type="text" id="subtaskNameInModal" placeholder="Enter subtask name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="subtaskDescriptionInModal">Description</label>
+                            <textarea id="subtaskDescriptionInModal" placeholder="Subtask description" rows="2"></textarea>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="subtaskPriorityInModal">Priority</label>
+                                <select id="subtaskPriorityInModal">
+                                    <option value="low">Low</option>
+                                    <option value="medium" selected>Medium</option>
+                                    <option value="high">High</option>
+                                    <option value="urgent">Urgent</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="subtaskStatusInModal">Status</label>
+                                <select id="subtaskStatusInModal">
+                                    <option value="todo">To Do</option>
+                                    <option value="in-progress">In Progress</option>
+                                    <option value="review">Review</option>
+                                    <option value="done">Done</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="subtaskDueDateInModal">Due Date</label>
+                            <input type="date" id="subtaskDueDateInModal">
+                        </div>
+                        <div class="task-form-actions">
+                            <button id="saveSubtaskInModal" class="btn btn-primary">Save Subtask</button>
+                            <button id="cancelSubtaskInModal" class="btn btn-secondary">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="deleteProject" class="btn btn-danger" style="display: none;">Delete</button>
+                <button id="cancelModal" class="btn btn-secondary">Cancel</button>
+                <button id="saveProject" class="btn btn-primary">Save Project</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Task Modal -->
+    <div id="taskModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="taskModalTitle">Add New Task</h3>
+                <button id="closeTaskModal" class="modal-close">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="taskName">Task Name</label>
+                    <input type="text" id="taskName" placeholder="Enter task name" required>
+                </div>
+                <div class="form-group">
+                    <label for="taskDescription">Description</label>
+                    <textarea id="taskDescription" placeholder="Task description" rows="2"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="taskPriority">Priority</label>
+                    <select id="taskPriority">
+                        <option value="low">Low</option>
+                        <option value="medium" selected>Medium</option>
+                        <option value="high">High</option>
+                        <option value="urgent">Urgent</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="taskStatus">Status</label>
+                    <select id="taskStatus">
+                        <option value="todo">To Do</option>
+                        <option value="in-progress">In Progress</option>
+                        <option value="review">Review</option>
+                        <option value="done">Done</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="taskDueDate">Due Date</label>
+                    <input type="date" id="taskDueDate">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="deleteTask" class="btn btn-danger" style="display: none;">Delete</button>
+                <button id="cancelTaskModal" class="btn btn-secondary">Cancel</button>
+                <button id="saveTask" class="btn btn-primary">Save Task</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Subtask Modal -->
+    <div id="subtaskModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="subtaskModalTitle">Add Subtask</h3>
+                <button id="closeSubtaskModal" class="modal-close">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="subtaskName">Subtask Name</label>
+                    <input type="text" id="subtaskName" placeholder="Enter subtask name" required>
+                </div>
+                <div class="form-group">
+                    <label for="subtaskDescription">Description</label>
+                    <textarea id="subtaskDescription" placeholder="Subtask description" rows="2"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="subtaskPriority">Priority</label>
+                    <select id="subtaskPriority">
+                        <option value="low">Low</option>
+                        <option value="medium" selected>Medium</option>
+                        <option value="high">High</option>
+                        <option value="urgent">Urgent</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="subtaskStatus">Status</label>
+                    <select id="subtaskStatus">
+                        <option value="todo">To Do</option>
+                        <option value="in-progress">In Progress</option>
+                        <option value="review">Review</option>
+                        <option value="done">Done</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="subtaskDueDate">Due Date</label>
+                    <input type="date" id="subtaskDueDate">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="deleteSubtask" class="btn btn-danger" style="display: none;">Delete</button>
+                <button id="cancelSubtaskModal" class="btn btn-secondary">Cancel</button>
+                <button id="saveSubtask" class="btn btn-primary">Save Subtask</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" class="toast-container"></div>
+    
+            <!-- Confetti Container for Celebrations -->
+        <div id="confettiContainer" class="confetti-container"></div>
+
+        <!-- Work Timer Popup -->
+        <div id="timerPopup" class="timer-popup hidden">
+            <div class="timer-header">
+                <h4>Work Timer</h4>
+                <div class="timer-controls">
+                    <button id="minimizeTimer" class="timer-btn minimize-btn" title="Minimize">−</button>
+                    <button id="closeTimer" class="timer-btn close-btn" title="Close">×</button>
+                </div>
+            </div>
+            <div class="timer-content">
+                <div class="timer-display">
+                    <span id="timerHours">00</span>:<span id="timerMinutes">00</span>:<span id="timerSeconds">00</span>
+                </div>
+                <div class="timer-name-input">
+                    <input type="text" id="timerName" placeholder="Session name (optional)" maxlength="30">
+                </div>
+                <div class="timer-buttons">
+                    <button id="startTimer" class="timer-action-btn start-btn">▶️ Start</button>
+                    <button id="pauseTimer" class="timer-action-btn pause-btn hidden">⏸️ Pause</button>
+                    <button id="resetTimer" class="timer-action-btn reset-btn">🔄 Reset</button>
+                    <button id="saveTimer" class="timer-action-btn save-btn hidden">💾 Save</button>
+                </div>
+                <div class="timer-info">
+                    <p>Session: <span id="sessionTime">00:00:00</span></p>
+                    <p>Total Today: <span id="totalTime">00:00:00</span></p>
+                </div>
+                <div class="saved-sessions">
+                    <div class="saved-sessions-header">
+                        <h5>Saved Sessions</h5>
+                        <button id="toggleSessions" class="toggle-sessions-btn">📊</button>
+                    </div>
+                    <div id="sessionsList" class="sessions-list hidden"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Minimized Timer -->
+        <div id="minimizedTimer" class="minimized-timer hidden">
+            <div class="mini-timer-display">
+                <span id="miniTimerDisplay">00:00:00</span>
+                <button id="maximizeTimer" class="timer-btn maximize-btn" title="Maximize">⬆️</button>
+            </div>
+        </div>
+
+        <script src="crm-script.js"></script>
+</body>
+</html>

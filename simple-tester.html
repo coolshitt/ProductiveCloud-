@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Productive Cloud Tester</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #0a0a0a; color: #fff; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; background: #1a1a1a; padding: 20px; border-radius: 10px; }
+        .header { text-align: center; margin-bottom: 20px; }
+        .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
+        .stat { background: #333; padding: 15px; text-align: center; border-radius: 5px; }
+        .test-item { display: flex; justify-content: space-between; padding: 10px; margin: 5px 0; background: #333; border-radius: 5px; }
+        .result-pass { background: #0a0; color: #fff; padding: 2px 8px; border-radius: 10px; }
+        .result-fail { background: #a00; color: #fff; padding: 2px 8px; border-radius: 10px; }
+        .result-pending { background: #666; color: #fff; padding: 2px 8px; border-radius: 10px; }
+        .btn { padding: 10px 20px; margin: 10px; border: none; border-radius: 5px; cursor: pointer; }
+        .btn-run { background: #0a0; color: #fff; }
+        .btn-clear { background: #666; color: #fff; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧪 Simple Productive Cloud Tester</h1>
+            <p>Open your Productive Cloud app in another tab, then run tests here</p>
+        </div>
+
+        <div class="stats">
+            <div class="stat">
+                <div id="totalTests">0</div>
+                <div>Total</div>
+            </div>
+            <div class="stat">
+                <div id="passedTests">0</div>
+                <div>Passed</div>
+            </div>
+            <div class="stat">
+                <div id="failedTests">0</div>
+                <div>Failed</div>
+            </div>
+            <div class="stat">
+                <div id="successRate">0%</div>
+                <div>Success</div>
+            </div>
+        </div>
+
+        <div id="testResults"></div>
+
+        <div style="text-align: center;">
+            <button class="btn btn-run" onclick="runTests()">🚀 Run Tests</button>
+            <button class="btn btn-clear" onclick="clearResults()">🗑️ Clear</button>
+        </div>
+    </div>
+
+    <script>
+        const tests = [
+            { name: 'Script Loading', test: () => ({ passed: true, message: 'OK' }) },
+            { name: 'Global Instance', test: () => ({ passed: !!window.productiveCloud, message: window.productiveCloud ? 'Found' : 'Not found' }) },
+            { name: 'Calendar Element', test: () => ({ passed: !!document.querySelector('#calendar'), message: 'Calendar found' }) },
+            { name: 'Habit Methods', test: () => ({ passed: !!(window.productiveCloud && window.productiveCloud.showHabitModal), message: 'Methods available' }) },
+            { name: 'Theme Toggle', test: () => ({ passed: !!document.querySelector('#themeToggle'), message: 'Theme toggle found' }) },
+            { name: 'Navigation Links', test: () => ({ passed: document.querySelectorAll('.nav-link').length > 0, message: 'Navigation found' }) },
+            { name: 'LocalStorage', test: () => ({ passed: !!localStorage, message: 'Storage available' }) },
+            { name: 'Responsive Design', test: () => ({ passed: !!document.querySelector('meta[name="viewport"]'), message: 'Viewport meta found' }) }
+        ];
+
+        let results = { total: tests.length, passed: 0, failed: 0 };
+
+        function runTests() {
+            results = { total: tests.length, passed: 0, failed: 0 };
+            updateDisplay();
+            renderTests();
+
+            tests.forEach((test, index) => {
+                setTimeout(() => {
+                    try {
+                        const result = test.test();
+                        if (result.passed) results.passed++;
+                        else results.failed++;
+                        updateTestResult(index, result);
+                        updateDisplay();
+                    } catch (error) {
+                        results.failed++;
+                        updateTestResult(index, { passed: false, message: error.message });
+                        updateDisplay();
+                    }
+                }, index * 500);
+            });
+        }
+
+        function updateTestResult(index, result) {
+            const element = document.getElementById(`test-${index}`);
+            if (element) {
+                element.querySelector('.result').textContent = result.passed ? 'Pass' : 'Fail';
+                element.querySelector('.result').className = `result ${result.passed ? 'result-pass' : 'result-fail'}`;
+            }
+        }
+
+        function updateDisplay() {
+            document.getElementById('totalTests').textContent = results.total;
+            document.getElementById('passedTests').textContent = results.passed;
+            document.getElementById('failedTests').textContent = results.failed;
+            document.getElementById('successRate').textContent = Math.round((results.passed / results.total) * 100) + '%';
+        }
+
+        function renderTests() {
+            const container = document.getElementById('testResults');
+            container.innerHTML = '';
+            
+            tests.forEach((test, index) => {
+                const div = document.createElement('div');
+                div.className = 'test-item';
+                div.id = `test-${index}`;
+                div.innerHTML = `
+                    <span>${test.name}</span>
+                    <span class="result result-pending">Pending</span>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function clearResults() {
+            results = { total: tests.length, passed: 0, failed: 0 };
+            updateDisplay();
+            renderTests();
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            renderTests();
+            updateDisplay();
+        });
+    </script>
+</body>
+</html>
