@@ -1076,5 +1076,99 @@
             color: white;
         }
     </style>
+    
+    <!-- Scripts -->
+    <script src="script.js"></script>
+    
+    <!-- Debug Script to Ensure Buttons are Visible -->
+    <script>
+        // Debug script to ensure buttons are visible
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🔍 Debug: DOM loaded, checking buttons...');
+            
+            // Check if buttons exist
+            const exportBtn = document.querySelector('.export-btn');
+            const importBtn = document.querySelector('.import-btn');
+            const clearBtn = document.querySelector('.clear-btn');
+            
+            console.log('Export button:', exportBtn);
+            console.log('Import button:', importBtn);
+            console.log('Clear button:', clearBtn);
+            
+            // Force show buttons if they exist
+            if (exportBtn) exportBtn.style.display = 'flex';
+            if (importBtn) importBtn.style.display = 'flex';
+            if (clearBtn) clearBtn.style.display = 'flex';
+            
+            // Check if ProductiveCloud is loaded
+            setTimeout(() => {
+                if (window.productiveCloud) {
+                    console.log('✅ ProductiveCloud loaded successfully');
+                    console.log('Available functions:', {
+                        exportData: typeof exportData,
+                        importData: typeof importData,
+                        clearAllData: typeof clearAllData
+                    });
+                } else {
+                    console.log('❌ ProductiveCloud not loaded');
+                }
+            }, 2000);
+            
+            // Add test buttons if main ones don't work
+            if (!exportBtn || !importBtn || !clearBtn) {
+                console.log('⚠️ Adding fallback test buttons...');
+                addFallbackButtons();
+            }
+        });
+        
+        function addFallbackButtons() {
+            const header = document.querySelector('.header-actions');
+            if (header) {
+                const fallbackDiv = document.createElement('div');
+                fallbackDiv.className = 'quick-data-actions';
+                fallbackDiv.innerHTML = `
+                    <button class="quick-data-btn export-btn" onclick="testExport()" title="Export Data">
+                        💾
+                    </button>
+                    <button class="quick-data-btn import-btn" onclick="testImport()" title="Import Data">
+                        📁
+                    </button>
+                    <button class="quick-data-btn clear-btn" onclick="testClear()" title="Clear All Data">
+                        🗑️
+                    </button>
+                `;
+                header.insertBefore(fallbackDiv, header.firstChild);
+                console.log('✅ Fallback buttons added');
+            }
+        }
+        
+        // Test functions
+        function testExport() {
+            alert('Export button clicked! If you see this, the button is working.');
+            if (typeof exportData === 'function') {
+                exportData();
+            } else {
+                alert('exportData function not available yet. Please wait for the page to load completely.');
+            }
+        }
+        
+        function testImport() {
+            alert('Import button clicked! If you see this, the button is working.');
+            if (typeof importData === 'function') {
+                importData();
+            } else {
+                alert('importData function not available yet. Please wait for the page to load completely.');
+            }
+        }
+        
+        function testClear() {
+            alert('Clear button clicked! If you see this, the button is working.');
+            if (typeof clearAllData === 'function') {
+                clearAllData();
+            } else {
+                alert('clearAllData function not available yet. Please wait for the page to load completely.');
+            }
+        }
+    </script>
 </body>
 </html>
