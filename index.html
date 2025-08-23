@@ -169,6 +169,19 @@
                 
                 <div class="header-right">
                     <div class="header-actions">
+                        <!-- Quick Data Management Buttons (Always Visible) -->
+                        <div class="quick-data-actions">
+                            <button class="quick-data-btn export-btn" onclick="exportData()" title="Export Data">
+                                💾
+                            </button>
+                            <button class="quick-data-btn import-btn" onclick="importData()" title="Import Data">
+                                📁
+                            </button>
+                            <button class="quick-data-btn clear-btn" onclick="clearAllData()" title="Clear All Data">
+                                🗑️
+                            </button>
+                        </div>
+                        
                         <button id="themeToggle" class="theme-toggle" aria-label="Toggle dark/light mode">
                             <span id="themeIcon">🌙</span>
                         </button>
@@ -244,6 +257,16 @@
                                 <button id="jumpBtn" class="jump-btn">Go</button>
                             </div>
                             <button id="todayBtn" class="today-btn">Today</button>
+                            
+                            <!-- Quick Test Buttons -->
+                            <div class="quick-test-buttons">
+                                <button class="test-btn export-test" onclick="exportData()" title="Test Export">
+                                    💾 Export
+                                </button>
+                                <button class="test-btn import-test" onclick="importData()" title="Test Import">
+                                    📁 Import
+                                </button>
+                            </div>
                         </div>
                     </div>
                     
@@ -934,6 +957,123 @@
         
         .btn-danger:hover {
             background: var(--danger-hover, #c82333);
+        }
+        
+        /* Quick Data Management Buttons */
+        .quick-data-actions {
+            display: flex;
+            gap: 8px;
+            margin-right: 16px;
+        }
+        
+        .quick-data-btn {
+            background: none;
+            border: 1px solid var(--border-color, #e0e0e0);
+            border-radius: 6px;
+            padding: 8px 10px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 36px;
+            height: 36px;
+        }
+        
+        .quick-data-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .export-btn {
+            color: var(--success-color, #28a745);
+            border-color: var(--success-color, #28a745);
+        }
+        
+        .export-btn:hover {
+            background: var(--success-color, #28a745);
+            color: white;
+        }
+        
+        .import-btn {
+            color: var(--info-color, #17a2b8);
+            border-color: var(--info-color, #17a2b8);
+        }
+        
+        .import-btn:hover {
+            background: var(--info-color, #17a2b8);
+            color: white;
+        }
+        
+        .clear-btn {
+            color: var(--danger-color, #dc3545);
+            border-color: var(--danger-color, #dc3545);
+        }
+        
+        .clear-btn:hover {
+            background: var(--danger-color, #dc3545);
+            color: white;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .quick-data-actions {
+                margin-right: 8px;
+                gap: 4px;
+            }
+            
+            .quick-data-btn {
+                padding: 6px 8px;
+                min-width: 32px;
+                height: 32px;
+                font-size: 1em;
+            }
+        }
+        
+        /* Quick Test Buttons in Calendar */
+        .quick-test-buttons {
+            display: flex;
+            gap: 8px;
+            margin-left: 16px;
+        }
+        
+        .test-btn {
+            background: var(--bg-secondary, #f8f9fa);
+            border: 1px solid var(--border-color, #e0e0e0);
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 0.9em;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .test-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .export-test {
+            color: var(--success-color, #28a745);
+            border-color: var(--success-color, #28a745);
+        }
+        
+        .export-test:hover {
+            background: var(--success-color, #28a745);
+            color: white;
+        }
+        
+        .import-test {
+            color: var(--info-color, #17a2b8);
+            border-color: var(--info-color, #17a2b8);
+        }
+        
+        .import-test:hover {
+            background: var(--info-color, #17a2b8);
+            color: white;
         }
     </style>
 </body>
