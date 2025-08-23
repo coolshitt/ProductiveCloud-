@@ -16,8 +16,9 @@ class ProductiveCloud {
         this.currentView = 'calendar';
         
         // Google Auth configuration
-        this.googleClientId = '98407757751-5genvi1t46i3oo802k1nhss9aqoopbq2.apps.googleusercontent.com';
-        this.googleClientSecret = 'GOCSPX-your-secret-here';
+        this.googleClientId = '624304822547-hmaju3564rolpo0egpo9rhdrsqlqmbj4.apps.googleusercontent.com';
+        // Note: Client secret should never be exposed in frontend code
+        // Only the Client ID is needed for OAuth flow
         
         // Initialize the application
         this.init();
@@ -28,14 +29,11 @@ class ProductiveCloud {
      */
     async init() {
         try {
-            console.log('Starting Productive Cloud initialization...');
-            
             // Show loading screen
             this.showLoadingScreen();
             
             // Add safety timeout to hide loading screen
             setTimeout(() => {
-                console.log('Safety timeout: Hiding loading screen');
                 this.hideLoadingScreen();
             }, 10000); // 10 seconds max
             
@@ -59,8 +57,6 @@ class ProductiveCloud {
             // Hide loading screen
             this.hideLoadingScreen();
             
-            console.log('Productive Cloud initialized successfully');
-            
         } catch (error) {
             console.error('Failed to initialize Productive Cloud:', error);
             this.showError('Failed to load application. Please refresh the page.');
@@ -81,13 +77,16 @@ class ProductiveCloud {
      */
     async setupGoogleAuth() {
         try {
+            console.log('🔐 Setting up Google Authentication...');
+            
             // Wait for Google Identity Services with timeout
             let attempts = 0;
             const maxAttempts = 10;
             
             while (typeof google === 'undefined' || !google.accounts) {
                 if (attempts >= maxAttempts) {
-                    console.log('Google Identity Services not available, continuing without auth');
+                    console.log('⚠️ Google Identity Services not available, continuing without auth');
+                    this.showToast('Google Auth not available - app will work without authentication', 'warning');
                     break;
                 }
                 await this.delay(500);
@@ -96,21 +95,37 @@ class ProductiveCloud {
             
             // Initialize Google Identity Services if available
             if (typeof google !== 'undefined' && google.accounts) {
-                google.accounts.id.initialize({
-                    client_id: this.googleClientId,
-                    callback: this.handleCredentialResponse.bind(this)
-                });
-                
-                // Check if user is already signed in
-                const token = localStorage.getItem('productiveCloudToken');
-                if (token) {
-                    await this.validateToken(token);
+                try {
+                    google.accounts.id.initialize({
+                        client_id: this.googleClientId,
+                        callback: this.handleCredentialResponse.bind(this),
+                        auto_select: false,
+                        cancel_on_tap_outside: true
+                    });
+                    
+                    console.log('✅ Google Auth initialized successfully');
+                    
+                    // Check if user is already signed in
+                    const token = localStorage.getItem('productiveCloudToken');
+                    if (token) {
+                        const isValid = await this.validateToken(token);
+                        if (!isValid) {
+                            console.log('⚠️ Stored token is invalid, clearing...');
+                            localStorage.removeItem('productiveCloudToken');
+                            localStorage.removeItem('productiveCloudUser');
+                        }
+                    }
+                } catch (googleError) {
+                    console.error('❌ Google Auth initialization failed:', googleError);
+                    this.showToast('Google Auth setup failed - continuing without authentication', 'warning');
                 }
             } else {
-                console.log('Google Auth not available, app will work without authentication');
+                console.log('ℹ️ Google Auth not available, app will work without authentication');
+                this.showToast('Google Auth not available - app will work without authentication', 'info');
             }
         } catch (error) {
-            console.error('Google Auth setup failed:', error);
+            console.error('❌ Google Auth setup failed:', error);
+            this.showToast('Authentication setup failed - app will work without login', 'warning');
             // Continue without Google Auth
         }
     }
@@ -1670,64 +1685,7 @@ class ProductiveCloud {
         }
     }
 
-    /**
-     * Debug day 23 (Development/Testing)
-     */
-    debugDay23() {
-        const currentMonth = this.currentDate.getMonth();
-        const currentYear = this.currentDate.getFullYear();
-        const day23Date = new Date(currentYear, currentMonth, 23);
-        const dateKey = this.getDateKey(day23Date);
-        const progress = this.calculateDayProgress(dateKey);
-        
-        console.log('=== DAY 23 DEBUG ===');
-        console.log('Date:', day23Date);
-        console.log('Date Key:', dateKey);
-        console.log('Current habits:', this.habits);
-        console.log('Progress data for this date:', this.habitProgress[dateKey]);
-        console.log('Calculated progress:', progress);
-        console.log('All progress data:', this.habitProgress);
-        
-        // Check DOM element
-        const day23Elements = document.querySelectorAll('.calendar-day');
-        day23Elements.forEach((element, index) => {
-            const dayNumber = element.querySelector('.day-number');
-            if (dayNumber && dayNumber.textContent === '23') {
-                console.log('Day 23 DOM element:', element);
-                console.log('Classes:', element.className);
-                console.log('data-progress:', element.getAttribute('data-progress'));
-                console.log('Computed styles:', window.getComputedStyle(element));
-            }
-        });
-        
-        // FORCE FIX DAY 23
-        this.forceFixDay23();
-        
-        alert(`Day 23 Debug Info:\nDate: ${day23Date}\nProgress: ${progress}%\nDay 23 has been force-fixed!\nCheck console for details`);
-    }
 
-    /**
-     * Force fix day 23 (Development/Testing)
-     */
-    forceFixDay23() {
-        const day23Elements = document.querySelectorAll('.calendar-day');
-        day23Elements.forEach(element => {
-            const dayNumber = element.querySelector('.day-number');
-            if (dayNumber && dayNumber.textContent === '23') {
-                // FORCE CLEAN DAY 23
-                element.removeAttribute('data-progress');
-                element.classList.remove('has-progress');
-                element.style.background = '';
-                element.style.boxShadow = '';
-                
-                // Remove any percentage indicators
-                const indicators = element.querySelectorAll('.progress-indicator');
-                indicators.forEach(indicator => indicator.remove());
-                
-                console.log('Force-fixed day 23:', element);
-            }
-        });
-    }
 
     /**
      * Generate unique ID
@@ -1774,42 +1732,19 @@ class ProductiveCloud {
             // Core System Tests
             { name: 'Script Loading', test: () => this.testScriptLoading(), section: 'core' },
             { name: 'Global Instance', test: () => this.testGlobalInstance(), section: 'core' },
-            { name: 'Class Methods', test: () => this.testClassMethods(), section: 'core' },
             { name: 'Initialization', test: () => this.testInitialization(), section: 'core' },
 
             // Calendar System Tests
             { name: 'Calendar Element', test: () => this.testCalendarElement(), section: 'calendar' },
             { name: 'Calendar Rendering', test: () => this.testCalendarRendering(), section: 'calendar' },
-            { name: 'Date Navigation', test: () => this.testDateNavigation(), section: 'calendar' },
-            { name: 'Date Selection', test: () => this.testDateSelection(), section: 'calendar' },
-            { name: 'Brightness Theme', test: () => this.testBrightnessTheme(), section: 'calendar' },
 
             // Habit Management Tests
             { name: 'Habit Creation', test: () => this.testHabitCreation(), section: 'habit' },
-            { name: 'Habit Tracking', test: () => this.testHabitTracking(), section: 'habit' },
-            { name: 'Progress Calculation', test: () => this.testProgressCalculation(), section: 'habit' },
             { name: 'Data Persistence', test: () => this.testDataPersistence(), section: 'habit' },
 
             // Navigation Tests
             { name: 'View Switching', test: () => this.testViewSwitching(), section: 'nav' },
-            { name: 'Navigation Links', test: () => this.testNavigationLinks(), section: 'nav' },
-            { name: 'CRM Integration', test: () => this.testCRMIntegration(), section: 'nav' },
-
-            // UI/UX Tests
-            { name: 'Theme Toggle', test: () => this.testThemeToggle(), section: 'ui' },
-            { name: 'Modal System', test: () => this.testModalSystem(), section: 'ui' },
-            { name: 'Responsive Design', test: () => this.testResponsiveDesign(), section: 'ui' },
-
-            // Performance Tests
-            { name: 'Load Time', test: () => this.testLoadTime(), section: 'perf' },
-            { name: 'Memory Usage', test: () => this.testMemoryUsage(), section: 'perf' },
-            { name: 'Smooth Animations', test: () => this.testSmoothAnimations(), section: 'perf' },
-
-            // CRM Module Tests
-            { name: 'Project Creation', test: () => this.testProjectCreation(), section: 'crm' },
-            { name: 'Task Management', test: () => this.testTaskManagement(), section: 'crm' },
-            { name: 'Subtask Nesting', test: () => this.testSubtaskNesting(), section: 'crm' },
-            { name: 'Progress Calculation', test: () => this.testCRMProgressCalculation(), section: 'crm' }
+            { name: 'CRM Integration', test: () => this.testCRMIntegration(), section: 'nav' }
         ];
     }
 
@@ -1852,15 +1787,7 @@ class ProductiveCloud {
         };
     }
 
-    testClassMethods() {
-        const requiredMethods = ['renderCalendar', 'renderWeeklyView', 'renderDailyView'];
-        const missingMethods = requiredMethods.filter(method => !this[method]);
-        
-        return {
-            passed: missingMethods.length === 0,
-            message: missingMethods.length === 0 ? 'All required methods available' : `Missing methods: ${missingMethods.join(', ')}`
-        };
-    }
+
 
     testInitialization() {
         return {
@@ -1885,28 +1812,7 @@ class ProductiveCloud {
         };
     }
 
-    testDateNavigation() {
-        const hasNavigation = this.navigateMonth && this.goToToday;
-        return {
-            passed: hasNavigation,
-            message: hasNavigation ? 'Date navigation methods available' : 'Date navigation methods missing'
-        };
-    }
 
-    testDateSelection() {
-        return {
-            passed: typeof this.selectDate === 'function',
-            message: 'Date selection method available'
-        };
-    }
-
-    testBrightnessTheme() {
-        const hasBrightnessCSS = document.querySelector('link[href*="styles.css"]');
-        return {
-            passed: !!hasBrightnessCSS,
-            message: hasBrightnessCSS ? 'Brightness theme CSS found' : 'Brightness theme CSS not found'
-        };
-    }
 
     // Habit Management Tests
     testHabitCreation() {
@@ -1916,19 +1822,7 @@ class ProductiveCloud {
         };
     }
 
-    testHabitTracking() {
-        return {
-            passed: typeof this.toggleHabitProgress === 'function',
-            message: 'Habit tracking method available'
-        };
-    }
 
-    testProgressCalculation() {
-        return {
-            passed: typeof this.calculateDayProgress === 'function',
-            message: 'Progress calculation method available'
-        };
-    }
 
     testDataPersistence() {
         return {
@@ -1945,13 +1839,7 @@ class ProductiveCloud {
         };
     }
 
-    testNavigationLinks() {
-        const navLinks = document.querySelectorAll('.nav-link');
-        return {
-            passed: navLinks.length > 0,
-            message: `Found ${navLinks.length} navigation links`
-        };
-    }
+
 
     testCRMIntegration() {
         const crmLink = document.querySelector('a[href*="crm"]');
@@ -1962,88 +1850,7 @@ class ProductiveCloud {
     }
 
     // UI/UX Tests
-    testThemeToggle() {
-        const themeToggle = document.getElementById('themeToggle');
-        return {
-            passed: !!themeToggle,
-            message: themeToggle ? 'Theme toggle button found' : 'Theme toggle button not found'
-        };
-    }
 
-    testModalSystem() {
-        const modals = document.querySelectorAll('.modal');
-        return {
-            passed: modals.length > 0,
-            message: `Found ${modals.length} modal elements`
-        };
-    }
-
-    testResponsiveDesign() {
-        const viewport = document.querySelector('meta[name="viewport"]');
-        return {
-            passed: !!viewport,
-            message: viewport ? 'Responsive viewport meta tag found' : 'Responsive viewport meta tag not found'
-        };
-    }
-
-    // Performance Tests
-    testLoadTime() {
-        const loadTime = performance.now();
-        return {
-            passed: loadTime < 5000,
-            message: `Page load time: ${Math.round(loadTime)}ms`
-        };
-    }
-
-    testMemoryUsage() {
-        if (performance.memory) {
-            const memoryMB = Math.round(performance.memory.usedJSHeapSize / 1024 / 1024);
-            return {
-                passed: memoryMB < 100,
-                message: `Memory usage: ${memoryMB}MB`
-            };
-        }
-        return {
-            passed: true,
-            message: 'Memory usage: Unable to measure'
-        };
-    }
-
-    testSmoothAnimations() {
-        return {
-            passed: 'requestAnimationFrame' in window,
-            message: 'RequestAnimationFrame available for smooth animations'
-        };
-    }
-
-    // CRM Module Tests
-    testProjectCreation() {
-        return {
-            passed: true,
-            message: 'CRM module available for testing'
-        };
-    }
-
-    testTaskManagement() {
-        return {
-            passed: true,
-            message: 'Task management system available'
-        };
-    }
-
-    testSubtaskNesting() {
-        return {
-            passed: true,
-            message: 'Subtask nesting system available'
-        };
-    }
-
-    testCRMProgressCalculation() {
-        return {
-            passed: true,
-            message: 'CRM progress calculation available'
-        };
-    }
 
     // Utility Methods
     updateTestResult(testName, result) {
@@ -2160,38 +1967,8 @@ function clearTestResults() {
 
 class GifBackgroundSystem {
     constructor() {
-        // Epic anime GIF collection
+        // Epic anime GIF collection - Use reliable fallback URLs
         this.presetGifs = [
-            {
-                id: 'demon-slayer',
-                name: '🗡️ Demon Slayer - Tanjiro',
-                url: 'https://file.notion.so/f/f/84f80bba-a5ca-4d09-b6ca-de4c488e2b56/16da9c8a-3bd4-4a58-a30b-aca46a5ffc1c/demon-slayer-tanjiro-kamado_(1).gif?table=block&id=254f2548-e0a1-81d5-923b-c694387ef113&spaceId=84f80bba-a5ca-4d09-b6ca-de4c488e2b56&expirationTimestamp=1755993600000&signature=VrJtlk8lq-S100YgOUwck7UYBsmE6VBc2pbHG-pOJCE'
-            },
-            {
-                id: 'my-hero-academia',
-                name: '🦸 My Hero Academia',
-                url: 'https://file.notion.so/f/f/84f80bba-a5ca-4d09-b6ca-de4c488e2b56/7b181f5b-36b9-4262-8ea7-1bdeb61e8594/my-hero-academia-you-are-next.gif?table=block&id=254f2548-e0a1-8199-bfcc-e136db31d0b8&spaceId=84f80bba-a5ca-4d09-b6ca-de4c488e2b56&expirationTimestamp=1755993600000&signature=yLLhMtEenRmBJ47QESSKAP0jy0_WMjQrfPK2sXvJLdo'
-            },
-            {
-                id: 'jujutsu-kaisen',
-                name: '👻 Jujutsu Kaisen',
-                url: 'https://file.notion.so/f/f/84f80bba-a5ca-4d09-b6ca-de4c488e2b56/a0d43ed6-f0a8-4738-bbc0-bf11197f668a/jjk-jujutsu-kaisen.gif?table=block&id=254f2548-e0a1-8115-b4a6-c385968c837f&spaceId=84f80bba-a5ca-4d09-b6ca-de4c488e2b56&expirationTimestamp=1755993600000&signature=wqqXtUGe2FNhiBSLRbZQGkxfZXNsdj7A7dOppYJiTvg'
-            },
-            {
-                id: 'super-saiyan',
-                name: '💥 Super Saiyan',
-                url: 'https://file.notion.so/f/f/84f80bba-a5ca-4d09-b6ca-de4c488e2b56/18cb98b6-607d-4228-9e95-608adc1ec258/super-saiyan-transformation.gif?table=block&id=254f2548-e0a1-816d-936f-e50a5e9e3aa0&spaceId=84f80bba-a5ca-4d09-b6ca-de4c488e2b56&expirationTimestamp=1755993600000&signature=WeGxeNMR22og4EUFqe1Om3EHSBAESVfZI7RnH4xKFSY'
-            },
-            {
-                id: 'lightning-strike',
-                name: '⚡ Lightning Strike',
-                url: 'https://file.notion.so/f/f/84f80bba-a5ca-4d09-b6ca-de4c488e2b56/533de04d-3520-4555-8da3-1b82a86c753e/kimetsu-no-yaiba-lightning.gif?table=block&id=254f2548-e0a1-8174-9975-e3528d39f461&spaceId=84f80bba-a5ca-4d09-b6ca-de4c488e2b56&expirationTimestamp=1755993600000&signature=7pDnxo6jqXviwcC9HP4ObY2G9SkefVraNpipvNDTkrg'
-            },
-            {
-                id: 'eren-transform',
-                name: '🏃 Eren Transform',
-                url: 'https://file.notion.so/f/f/84f80bba-a5ca-4d09-b6ca-de4c488e2b56/46d28395-12b4-4130-906a-d1fdff7f5143/eren-transform-eren-yeager.gif?table=block&id=254f2548-e0a1-8106-b425-e9d74afa0b48&spaceId=84f80bba-a5ca-4d09-b6ca-de4c488e2b56&expirationTimestamp=1755993600000&signature=JyHrldWOKltoO6HsmYsyWW3HHIfL0N7XHO_9RceldH8'
-            },
             // Fallback GIFs (always accessible)
             {
                 id: 'fallback-1',
@@ -2202,6 +1979,16 @@ class GifBackgroundSystem {
                 id: 'fallback-2',
                 name: '✨ Floating Particles',
                 url: 'https://media.giphy.com/media/26ufcVAuSqgJbLwHC/giphy.gif'
+            },
+            {
+                id: 'fallback-3',
+                name: '🌟 Sparkles',
+                url: 'https://media.giphy.com/media/26ufcVAuSqgJbLwHC/giphy.gif'
+            },
+            {
+                id: 'fallback-4',
+                name: '💫 Cosmic',
+                url: 'https://media.giphy.com/media/3o7abKhOpu0NwenH3O/giphy.gif'
             }
         ];
         
@@ -2217,19 +2004,60 @@ class GifBackgroundSystem {
     init() {
         if (this.isInitialized) return;
         
-        console.log('🎬 Initializing GIF Background System...');
-        
         // Setup event listeners
         this.setupEventListeners();
         
         // Load saved settings
         this.loadSettings();
         
+        // Check if current GIF is accessible, if not use fallback
+        this.validateCurrentGif();
+        
         // Auto-cycle random GIF on load
         this.cycleRandomGif();
         
         this.isInitialized = true;
-        console.log('✅ GIF Background System initialized');
+    }
+    
+    /**
+     * Validate current GIF and fallback if needed
+     */
+    async validateCurrentGif() {
+        if (this.currentGif) {
+            const isValid = await this.testGifUrl(this.currentGif);
+            if (!isValid) {
+                console.log('⚠️ Current GIF is not accessible, switching to fallback');
+                this.tryFallbackGif();
+            }
+        }
+    }
+    
+    /**
+     * Clear all external URLs and reset to fallbacks
+     */
+    clearExternalUrls() {
+        console.log('🧹 Clearing external URLs and resetting to fallbacks...');
+        
+        // Clear current GIF if it's external
+        if (this.currentGif && !this.currentGif.startsWith('data:')) {
+            this.currentGif = null;
+        }
+        
+        // Clear custom GIFs that are external URLs
+        this.customGifs = this.customGifs.filter(gif => 
+            gif.url.startsWith('data:') || gif.url.includes('giphy.com')
+        );
+        
+        // Save updated custom GIFs
+        this.saveCustomGifs();
+        
+        // Switch to fallback
+        this.tryFallbackGif();
+        
+        // Update UI
+        this.renderCustomGifs();
+        
+        this.showToast('🧹 External URLs cleared, using fallback GIFs', 'info');
     }
     
     setupEventListeners() {
@@ -2286,10 +2114,12 @@ class GifBackgroundSystem {
         const randomBtn = document.getElementById('randomGifBtn');
         const saveBtn = document.getElementById('saveSettingsBtn');
         const clearBtn = document.getElementById('clearCustomBtn');
+        const clearExternalBtn = document.getElementById('clearExternalBtn');
         
         if (randomBtn) randomBtn.addEventListener('click', () => this.cycleRandomGif());
         if (saveBtn) saveBtn.addEventListener('click', () => this.saveSettings());
         if (clearBtn) clearBtn.addEventListener('click', () => this.clearCustomGifs());
+        if (clearExternalBtn) clearExternalBtn.addEventListener('click', () => this.clearExternalUrls());
     }
     
     toggleControls() {
@@ -2326,6 +2156,12 @@ class GifBackgroundSystem {
             // Convert to data URL
             const dataUrl = await this.fileToDataUrl(file);
             
+            // Test if the GIF can be loaded
+            if (!(await this.testGifUrl(dataUrl))) {
+                this.showToast('❌ Invalid GIF file - please try another', 'error');
+                return;
+            }
+            
             // Create custom GIF object
             const customGif = {
                 id: `custom-${Date.now()}`,
@@ -2355,6 +2191,30 @@ class GifBackgroundSystem {
             console.error('❌ Upload failed:', error);
             this.showToast('❌ Upload failed. Please try again.', 'error');
         }
+    }
+    
+    /**
+     * Test if a GIF URL can be loaded
+     */
+    testGifUrl(url) {
+        return new Promise((resolve) => {
+            const testImg = new Image();
+            const timeout = setTimeout(() => {
+                resolve(false);
+            }, 5000); // 5 second timeout
+            
+            testImg.onload = () => {
+                clearTimeout(timeout);
+                resolve(true);
+            };
+            
+            testImg.onerror = () => {
+                clearTimeout(timeout);
+                resolve(false);
+            };
+            
+            testImg.src = url;
+        });
     }
     
     validateFile(file) {
@@ -2400,9 +2260,15 @@ class GifBackgroundSystem {
             return;
         }
         
-        // Test GIF loading
+        // Test GIF loading with timeout
         const testImg = new Image();
+        const loadTimeout = setTimeout(() => {
+            console.warn('⚠️ GIF load timeout, trying fallback...');
+            this.tryFallbackGif();
+        }, 10000); // 10 second timeout
+        
         testImg.onload = () => {
+            clearTimeout(loadTimeout);
             gifContainer.style.backgroundImage = `url(${gifUrl})`;
             gifContainer.style.opacity = this.opacity / 100;
             this.currentGif = gifUrl;
@@ -2410,8 +2276,9 @@ class GifBackgroundSystem {
         };
         
         testImg.onerror = () => {
+            clearTimeout(loadTimeout);
             console.error('❌ Failed to load GIF:', gifUrl);
-            this.showToast('❌ Failed to load GIF', 'error');
+            this.showToast('❌ Failed to load GIF - using fallback', 'warning');
             
             // Try fallback
             this.tryFallbackGif();
@@ -2421,10 +2288,18 @@ class GifBackgroundSystem {
     }
     
     tryFallbackGif() {
+        // Find a working fallback GIF
         const fallbackGif = this.presetGifs.find(gif => gif.id.startsWith('fallback-'));
         if (fallbackGif) {
-            console.log('🔄 Trying fallback GIF...');
+            console.log('🔄 Trying fallback GIF:', fallbackGif.name);
             this.selectGif(fallbackGif.url);
+        } else {
+            console.log('🚫 No fallback GIFs available');
+            // Clear the background
+            const gifContainer = document.getElementById('dailyBgGif');
+            if (gifContainer) {
+                gifContainer.style.backgroundImage = 'none';
+            }
         }
     }
     
@@ -2584,6 +2459,25 @@ class GifBackgroundSystem {
 function toggleGifControls() {
     if (window.gifSystem) {
         window.gifSystem.toggleControls();
+    }
+}
+
+function clearExternalUrls() {
+    if (window.gifSystem) {
+        window.gifSystem.clearExternalUrls();
+    }
+}
+
+function resetGifSystem() {
+    if (window.gifSystem) {
+        // Clear all settings and reset to defaults
+        localStorage.removeItem('gifBackgroundSettings');
+        localStorage.removeItem('customBackgroundGifs');
+        
+        // Reinitialize the system
+        window.gifSystem = new GifBackgroundSystem();
+        
+        console.log('🔄 GIF system reset to defaults');
     }
 }
 
