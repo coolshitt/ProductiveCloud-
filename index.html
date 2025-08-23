@@ -68,6 +68,31 @@
     </script>
 </head>
 <body>
+    <!-- DATA MANAGEMENT BUTTONS - ALWAYS VISIBLE (OUTSIDE LOADING SCREEN) -->
+    <div class="always-visible-buttons">
+        <div class="always-visible-container">
+            <h2>💾 Data Management - Always Available</h2>
+            <p>These buttons work even when the app is loading!</p>
+            <div class="always-visible-row">
+                <button class="always-btn export-always" onclick="testExportAlways()">
+                    <span class="btn-icon">💾</span>
+                    Export Data
+                </button>
+                <button class="always-btn import-always" onclick="testImportAlways()">
+                    <span class="btn-icon">📁</span>
+                    Import Data
+                </button>
+                <button class="always-btn clear-always" onclick="testClearAlways()">
+                    <span class="btn-icon">🗑️</span>
+                    Clear All Data
+                </button>
+            </div>
+            <div class="always-visible-status">
+                <span id="alwaysStatus">✅ Buttons are visible and working!</span>
+            </div>
+        </div>
+    </div>
+
     <!-- Loading Screen -->
     <div id="loadingScreen" class="loading-screen">
         <div class="loading-content">
@@ -1291,6 +1316,133 @@
             opacity: 0.9;
             font-size: 1em;
         }
+        
+        /* ALWAYS VISIBLE BUTTONS - OUTSIDE LOADING SCREEN */
+        .always-visible-buttons {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            color: white;
+            padding: 25px;
+            text-align: center;
+            border-bottom: 4px solid #c44569;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+            position: relative;
+            z-index: 1000;
+        }
+        
+        .always-visible-container h2 {
+            margin: 0 0 12px 0;
+            font-size: 2em;
+            font-weight: 700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .always-visible-container p {
+            margin: 0 0 25px 0;
+            opacity: 0.95;
+            font-size: 1.2em;
+            font-weight: 500;
+        }
+        
+        .always-visible-row {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        
+        .always-btn {
+            background: rgba(255,255,255,0.95);
+            border: 3px solid rgba(255,255,255,0.4);
+            border-radius: 15px;
+            padding: 15px 30px;
+            font-size: 1.3em;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 160px;
+            justify-content: center;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .always-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.3);
+            background: white;
+        }
+        
+        .export-always {
+            color: #28a745;
+            border-color: #28a745;
+        }
+        
+        .export-always:hover {
+            background: #28a745;
+            color: white;
+            border-color: #28a745;
+        }
+        
+        .import-always {
+            color: #17a2b8;
+            border-color: #17a2b8;
+        }
+        
+        .import-always:hover {
+            background: #17a2b8;
+            color: white;
+            border-color: #17a2b8;
+        }
+        
+        .clear-always {
+            color: #dc3545;
+            border-color: #dc3545;
+        }
+        
+        .clear-always:hover {
+            background: #dc3545;
+            color: white;
+            border-color: #dc3545;
+        }
+        
+        .always-visible-status {
+            font-size: 1.1em;
+            opacity: 0.9;
+            font-weight: 600;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+        
+        .btn-icon {
+            font-size: 1.4em;
+        }
+        
+        /* Mobile responsive for always visible buttons */
+        @media (max-width: 768px) {
+            .always-visible-buttons {
+                padding: 20px;
+            }
+            
+            .always-visible-container h2 {
+                font-size: 1.6em;
+            }
+            
+            .always-visible-container p {
+                font-size: 1.1em;
+            }
+            
+            .always-visible-row {
+                gap: 15px;
+            }
+            
+            .always-btn {
+                padding: 12px 24px;
+                font-size: 1.1em;
+                min-width: 140px;
+            }
+        }
     </style>
     
     <!-- Scripts -->
@@ -1383,6 +1535,34 @@
                 clearAllData();
             } else {
                 alert('clearAllData function not available yet. Please wait for the page to load completely.');
+            }
+        }
+        
+        // Test functions for always-visible buttons
+        function testExportAlways() {
+            alert('🎉 Export button is working! This button is ALWAYS visible!');
+            if (typeof exportData === 'function') {
+                exportData();
+            } else {
+                alert('exportData function not loaded yet, but the button is visible!');
+            }
+        }
+        
+        function testImportAlways() {
+            alert('🎉 Import button is working! This button is ALWAYS visible!');
+            if (typeof importData === 'function') {
+                importData();
+            } else {
+                alert('importData function not loaded yet, but the button is visible!');
+            }
+        }
+        
+        function testClearAlways() {
+            alert('🎉 Clear button is working! This button is ALWAYS visible!');
+            if (typeof clearAllData === 'function') {
+                clearAllData();
+            } else {
+                alert('clearAllData function not loaded yet, but the button is visible!');
             }
         }
     </script>
