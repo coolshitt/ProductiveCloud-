@@ -2489,3 +2489,12 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('🎬 Global GIF system initialized');
     }, 1000);
 });
+
+// Export your data to a file
+exportData()
+
+// Import data from a backup file
+importData()
+
+// Clear all data (WARNING: irreversible!)
+clearAllData()
