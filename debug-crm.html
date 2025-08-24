@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRM Debug - Productive Cloud</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .debug-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .debug-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .debug-button:hover {
+            background: #0056b3;
+        }
+        .result {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .error { border-color: #dc3545; background: #f8d7da; }
+        .success { border-color: #28a745; background: #d4edda; }
+        .warning { border-color: #ffc107; background: #fff3cd; }
+    </style>
+</head>
+<body>
+    <h1>🔍 CRM Debug & Testing</h1>
+    
+    <div class="debug-section">
+        <h2>1. CRM Module Status</h2>
+        <button class="debug-button" onclick="checkCRMModule()">Check CRM Module</button>
+        <div id="crmModuleResult" class="result"></div>
+    </div>
+    
+    <div class="debug-section">
+        <h2>2. LocalStorage CRM Data</h2>
+        <button class="debug-button" onclick="checkLocalStorage()">Check localStorage</button>
+        <div id="localStorageResult" class="result"></div>
+    </div>
+    
+    <div class="debug-section">
+        <h2>3. CRM Projects Array</h2>
+        <button class="debug-button" onclick="checkProjectsArray()">Check Projects Array</button>
+        <div id="projectsArrayResult" class="result"></div>
+    </div>
+    
+    <div class="debug-section">
+        <h2>4. DOM Elements</h2>
+        <button class="debug-button" onclick="checkDOMElements()">Check DOM Elements</button>
+        <div id="domElementsResult" class="result"></div>
+    </div>
+    
+    <div class="debug-section">
+        <h2>5. Force Refresh Test</h2>
+        <button class="debug-button" onclick="testForceRefresh()">Test Force Refresh</button>
+        <div id="forceRefreshResult" class="result"></div>
+    </div>
+    
+    <div class="debug-section">
+        <h2>6. Manual Import Test</h2>
+        <button class="debug-button" onclick="testManualImport()">Test Manual Import</button>
+        <div id="manualImportResult" class="result"></div>
+    </div>
+    
+    <div class="debug-section">
+        <h2>7. Render Test</h2>
+        <button class="debug-button" onclick="testRender()">Test Render</button>
+        <div id="renderResult" class="result"></div>
+    </div>
+    
+    <div class="debug-section">
+        <h2>8. Create Test Project</h2>
+        <button class="debug-button" onclick="createTestProject()">Create Test Project</button>
+        <div id="createTestResult" class="result"></div>
+    </div>
+
+    <div class="debug-section">
+        <h2>9. Repair Corrupted Data</h2>
+        <p>Attempt to repair corrupted CRM data in localStorage:</p>
+        <button class="debug-button" onclick="repairCorruptedData()">Repair Corrupted Data</button>
+        <div id="repairDataResult" class="result"></div>
+    </div>
+
+    <script src="script.js"></script>
+    <script src="crm-script.js"></script>
+    
+    <script>
+        function showResult(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `result ${type}`;
+        }
+
+        function checkCRMModule() {
+            console.log('🔍 Checking CRM module...');
+            let result = 'CRM Module Status:\n\n';
+            
+            if (window.projectCRM) {
+                result += '✅ CRM module is loaded\n';
+                result += `📋 Projects count: ${window.projectCRM.projects.length}\n`;
+                result += `🎨 Current theme: ${window.projectCRM.currentTheme}\n`;
+                result += `⏱️ Timer running: ${window.projectCRM.timer.isRunning}\n`;
+                result += `🔧 Methods available:\n`;
+                result += `  - loadProjects: ${typeof window.projectCRM.loadProjects === 'function'}\n`;
+                result += `  - renderProjects: ${typeof window.projectCRM.renderProjects === 'function'}\n`;
+                result += `  - forceRefreshFromStorage: ${typeof window.projectCRM.forceRefreshFromStorage === 'function'}\n`;
+                result += `  - showToast: ${typeof window.projectCRM.showToast === 'function'}\n`;
+            } else {
+                result += '❌ CRM module is NOT loaded\n';
+            }
+            
+            showResult('crmModuleResult', result, 'info');
+        }
+
+        function checkLocalStorage() {
+            console.log('🔍 Checking localStorage...');
+            let result = 'LocalStorage CRM Data:\n\n';
+            
+            const projects = localStorage.getItem('projectCRM_projects');
+            const theme = localStorage.getItem('projectCRM_theme');
+            const timerState = localStorage.getItem('crm_timer_state');
+            const importFlag = localStorage.getItem('crm_data_imported');
+            const importTimestamp = localStorage.getItem('crm_import_timestamp');
+            
+            result += `📦 projectCRM_projects: ${projects ? 'Found' : 'Not found'}\n`;
+            if (projects) {
+                try {
+                    const parsed = JSON.parse(projects);
+                    result += `  - Type: ${Array.isArray(parsed) ? 'Array' : typeof parsed}\n`;
+                    result += `  - Length: ${Array.isArray(parsed) ? parsed.length : 'N/A'}\n`;
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        result += `  - Sample project: ${JSON.stringify(parsed[0], null, 2)}\n`;
+                    }
+                } catch (e) {
+                    result += `  - Parse error: ${e.message}\n`;
+                }
+            }
+            
+            result += `\n🎨 projectCRM_theme: ${theme || 'Not found'}\n`;
+            result += `⏱️ crm_timer_state: ${timerState ? 'Found' : 'Not found'}\n`;
+            result += `🔄 crm_data_imported: ${importFlag || 'Not found'}\n`;
+            result += `⏰ crm_import_timestamp: ${importTimestamp || 'Not found'}\n`;
+            
+            showResult('localStorageResult', result, 'info');
+        }
+
+        function checkProjectsArray() {
+            console.log('🔍 Checking projects array...');
+            let result = 'Projects Array Status:\n\n';
+            
+            if (window.projectCRM) {
+                const projects = window.projectCRM.projects;
+                result += `📋 Projects array type: ${Array.isArray(projects) ? 'Array' : typeof projects}\n`;
+                result += `📊 Projects count: ${projects.length}\n`;
+                
+                if (Array.isArray(projects) && projects.length > 0) {
+                    result += `\n📋 Sample project structure:\n`;
+                    result += JSON.stringify(projects[0], null, 2);
+                    
+                    if (projects[0].tasks) {
+                        result += `\n\n📝 Sample project tasks:\n`;
+                        result += `Tasks count: ${projects[0].tasks.length}\n`;
+                        if (projects[0].tasks.length > 0) {
+                            result += JSON.stringify(projects[0].tasks[0], null, 2);
+                        }
+                    }
+                } else {
+                    result += `\n⚠️ No projects in array`;
+                }
+            } else {
+                result += '❌ CRM module not available';
+            }
+            
+            showResult('projectsArrayResult', result, 'info');
+        }
+
+        function checkDOMElements() {
+            console.log('🔍 Checking DOM elements...');
+            let result = 'DOM Elements Status:\n\n';
+            
+            const projectsList = document.getElementById('projectsList');
+            const emptyState = document.getElementById('emptyState');
+            const totalProjects = document.getElementById('totalProjects');
+            const activeProjects = document.getElementById('activeProjects');
+            const completedProjects = document.getElementById('completedProjects');
+            
+            result += `📋 projectsList: ${projectsList ? 'Found' : 'Not found'}\n`;
+            if (projectsList) {
+                result += `  - Display: ${projectsList.style.display}\n`;
+                result += `  - InnerHTML length: ${projectsList.innerHTML.length}\n`;
+                result += `  - Children count: ${projectsList.children.length}\n`;
+            }
+            
+            result += `\n📂 emptyState: ${emptyState ? 'Found' : 'Not found'}\n`;
+            if (emptyState) {
+                result += `  - Display: ${emptyState.style.display}\n`;
+            }
+            
+            result += `\n📊 Stats elements:\n`;
+            result += `  - totalProjects: ${totalProjects ? 'Found' : 'Not found'}\n`;
+            result += `  - activeProjects: ${activeProjects ? 'Found' : 'Not found'}\n`;
+            result += `  - completedProjects: ${completedProjects ? 'Found' : 'Not found'}\n`;
+            
+            showResult('domElementsResult', result, 'info');
+        }
+
+        function testForceRefresh() {
+            console.log('🔄 Testing force refresh...');
+            let result = 'Force Refresh Test:\n\n';
+            
+            if (window.projectCRM && typeof window.projectCRM.forceRefreshFromStorage === 'function') {
+                try {
+                    result += '🔄 Calling forceRefreshFromStorage...\n';
+                    window.projectCRM.forceRefreshFromStorage();
+                    result += '✅ Force refresh completed\n';
+                    
+                    // Check results after refresh
+                    setTimeout(() => {
+                        result += `\n📋 Projects after refresh: ${window.projectCRM.projects.length}\n`;
+                        result += `🎨 Theme after refresh: ${window.projectCRM.currentTheme}\n`;
+                        showResult('forceRefreshResult', result, 'success');
+                    }, 1000);
+                    
+                } catch (error) {
+                    result += `❌ Error during force refresh: ${error.message}\n`;
+                    showResult('forceRefreshResult', result, 'error');
+                }
+            } else {
+                result += '❌ CRM module or forceRefreshFromStorage not available\n';
+                showResult('forceRefreshResult', result, 'error');
+            }
+        }
+
+        function testManualImport() {
+            console.log('🚀 Testing manual import...');
+            let result = 'Manual Import Test:\n\n';
+            
+            if (typeof window.manualCRMDataImport === 'function') {
+                try {
+                    result += '🚀 Calling manualCRMDataImport...\n';
+                    window.manualCRMDataImport();
+                    result += '✅ Manual import completed\n';
+                    
+                    // Check results after import
+                    setTimeout(() => {
+                        if (window.projectCRM) {
+                            result += `\n📋 Projects after import: ${window.projectCRM.projects.length}\n`;
+                            result += `🔄 Import flag set: ${localStorage.getItem('crm_data_imported')}\n`;
+                        }
+                        showResult('manualImportResult', result, 'success');
+                    }, 1000);
+                    
+                } catch (error) {
+                    result += `❌ Error during manual import: ${error.message}\n`;
+                    showResult('manualImportResult', result, 'error');
+                }
+            } else {
+                result += '❌ manualCRMDataImport function not available\n';
+                showResult('manualImportResult', result, 'error');
+            }
+        }
+
+        function testRender() {
+            console.log('🎨 Testing render...');
+            let result = 'Render Test:\n\n';
+            
+            if (window.projectCRM && typeof window.projectCRM.renderProjects === 'function') {
+                try {
+                    result += '🎨 Calling renderProjects...\n';
+                    window.projectCRM.renderProjects();
+                    result += '✅ Render completed\n';
+                    
+                    // Check DOM after render
+                    setTimeout(() => {
+                        const projectsList = document.getElementById('projectsList');
+                        const emptyState = document.getElementById('emptyState');
+                        
+                        result += `\n📋 projectsList display: ${projectsList ? projectsList.style.display : 'Not found'}\n`;
+                        result += `📂 emptyState display: ${emptyState ? emptyState.style.display : 'Not found'}\n`;
+                        result += `📊 Projects count in instance: ${window.projectCRM.projects.length}\n`;
+                        
+                        showResult('renderResult', result, 'success');
+                    }, 500);
+                    
+                } catch (error) {
+                    result += `❌ Error during render: ${error.message}\n`;
+                    showResult('renderResult', result, 'error');
+                }
+            } else {
+                result += '❌ CRM module or renderProjects not available\n';
+                showResult('renderResult', result, 'error');
+            }
+        }
+
+        function createTestProject() {
+            console.log('➕ Creating test project...');
+            let result = 'Create Test Project:\n\n';
+            
+            if (window.projectCRM) {
+                try {
+                    const testProject = {
+                        id: 'test-' + Date.now(),
+                        name: 'Test Project ' + new Date().toLocaleTimeString(),
+                        status: 'active',
+                        progress: 25,
+                        cost: 1000,
+                        notes: 'This is a test project created for debugging',
+                        tasks: [
+                            {
+                                id: 'task-1',
+                                name: 'Test Task 1',
+                                completed: false,
+                                priority: 'medium',
+                                dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+                                notes: 'Test task description'
+                            }
+                        ],
+                        createdAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString()
+                    };
+                    
+                    result += '➕ Adding test project to CRM...\n';
+                    window.projectCRM.projects.push(testProject);
+                    
+                    result += '💾 Saving to localStorage...\n';
+                    window.projectCRM.saveProjects();
+                    
+                    result += '🎨 Rendering projects...\n';
+                    window.projectCRM.renderProjects();
+                    
+                    result += '📊 Updating stats...\n';
+                    window.projectCRM.updateStats();
+                    
+                    result += `✅ Test project created successfully!\n`;
+                    result += `📋 Total projects: ${window.projectCRM.projects.length}\n`;
+                    
+                    showResult('createTestResult', result, 'success');
+                    
+                } catch (error) {
+                    result += `❌ Error creating test project: ${error.message}\n`;
+                    showResult('createTestResult', result, 'error');
+                }
+            } else {
+                result += '❌ CRM module not available\n';
+                showResult('createTestResult', result, 'error');
+            }
+        }
+
+        function repairCorruptedData() {
+            console.log('🔧 Attempting to repair corrupted CRM data...');
+            let result = 'Repair Corrupted Data:\n\n';
+            
+            try {
+                // Check for corrupted projects data
+                const projects = localStorage.getItem('projectCRM_projects');
+                if (projects && projects === '[object Object]') {
+                    result += '🚨 Found corrupted projects data: "[object Object]"\n';
+                    result += '🔧 Attempting repair...\n';
+                    
+                    // Try to get data from the CRM module if available
+                    if (window.projectCRM && window.projectCRM.projects && window.projectCRM.projects.length > 0) {
+                        result += '✅ Found valid projects in CRM module\n';
+                        result += '💾 Repairing localStorage...\n';
+                        
+                        localStorage.setItem('projectCRM_projects', JSON.stringify(window.projectCRM.projects));
+                        result += '✅ Projects data repaired successfully!\n';
+                        result += `📋 Repaired projects count: ${window.projectCRM.projects.length}\n`;
+                        
+                        // Force refresh to apply the repair
+                        setTimeout(() => {
+                            window.projectCRM.forceRefreshFromStorage();
+                            result += '🔄 Force refresh completed after repair\n';
+                            showResult('repairDataResult', result, 'success');
+                        }, 100);
+                        
+                    } else {
+                        result += '⚠️ No valid projects found in CRM module for repair\n';
+                        result += '💡 Try creating a test project first, then repair\n';
+                        showResult('repairDataResult', result, 'warning');
+                    }
+                } else {
+                    result += '✅ No corrupted data found or repair not needed\n';
+                    if (projects) {
+                        try {
+                            const parsed = JSON.parse(projects);
+                            result += `📋 Current projects data is valid: ${Array.isArray(parsed) ? parsed.length : 'Invalid format'} projects\n`;
+                        } catch (e) {
+                            result += `⚠️ Data exists but has parse error: ${e.message}\n`;
+                        }
+                    } else {
+                        result += '📋 No projects data found in localStorage\n';
+                    }
+                    showResult('repairDataResult', result, 'info');
+                }
+                
+            } catch (error) {
+                result += `❌ Error during repair: ${error.message}\n`;
+                showResult('repairDataResult', result, 'error');
+            }
+        }
+
+        // Auto-check on page load
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                checkCRMModule();
+                checkLocalStorage();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

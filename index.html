@@ -84,24 +84,7 @@
 
     <!-- Main App Container -->
     <div id="appContainer" class="app-container" style="display: none;">
-        <!-- SIMPLE TEST BUTTONS - ALWAYS VISIBLE -->
-        <div class="test-buttons-section">
-            <div class="test-buttons-container">
-                <h2>🧪 Test Buttons - Click to Test</h2>
-                <div class="test-buttons-row">
-                    <button class="test-btn-simple" onclick="alert('Export button works!')">
-                        💾 Test Export
-                    </button>
-                    <button class="test-btn-simple" onclick="alert('Import button works!')">
-                        📁 Test Import
-                    </button>
-                    <button class="test-btn-simple" onclick="alert('Clear button works!')">
-                        🗑️ Test Clear
-                    </button>
-                </div>
-                <p>If you see these buttons, the page is working!</p>
-            </div>
-        </div>
+
         
         <!-- Header -->
         <header class="main-header">
@@ -208,6 +191,18 @@
                                  data-auto_prompt="false">
                             </div>
                             <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline" data-text="signin_with" data-shape="rectangular" data-logo_alignment="left"></div>
+                        </div>
+                        
+                        <!-- Database Status Indicator -->
+                        <div id="dbStatusIndicator" class="db-status-indicator" style="display: none;">
+                            <span class="status-icon">🌐</span>
+                            <span class="status-text">DB Connected</span>
+                        </div>
+                        
+                        <!-- Custom Auth Section -->
+                        <div id="customAuthSection" class="custom-auth-section" style="display: none;">
+                            <span id="customUserName" class="custom-user-name"></span>
+                            <button id="customLogoutBtn" class="custom-logout-btn" onclick="customLogout()">Logout</button>
                         </div>
                     </div>
                 </div>
@@ -539,6 +534,34 @@
                                 <button class="btn btn-primary" onclick="exportData()">
                                     <span class="btn-icon">🚀</span>
                                     Export Everything
+                                </button>
+                                                                 <button class="btn btn-secondary" onclick="debugCRMExport()" style="margin-top: 10px;">
+                                     <span class="btn-icon">🔍</span>
+                                     Test CRM Export
+                                 </button>
+                                                                    <button class="btn btn-secondary" onclick="forceRefreshCRMData()" style="margin-top: 10px;">
+                                       <span class="btn-icon">🔄</span>
+                                       Refresh CRM Data
+                                   </button>
+                                   <button class="btn btn-secondary" onclick="manualCRMDataImport()" style="margin-top: 10px;">
+                                       <span class="btn-icon">📥</span>
+                                       Manual CRM Import
+                                   </button>
+                                   <button class="btn btn-secondary" onclick="window.open('debug-crm.html', '_blank')" style="margin-top: 10px;">
+                                       <span class="btn-icon">🔍</span>
+                                       Debug CRM
+                                   </button>
+                                   <button class="btn btn-secondary" onclick="window.open('crm.html', '_blank')" style="margin-top: 10px;">
+                                       <span class="btn-icon">📊</span>
+                                       Open CRM Page
+                                   </button>
+                                                                       <button class="btn btn-secondary" onclick="checkCRMDataStatus()" style="margin-top: 10px;">
+                                        <span class="btn-icon">📊</span>
+                                        Check CRM Status
+                                    </button>
+                                    <button class="btn btn-secondary" onclick="repairCorruptedCRMData()" style="margin-top: 10px;">
+                                        <span class="btn-icon">🔧</span>
+                                        Repair CRM Data
                                 </button>
                             </div>
                             
@@ -1122,6 +1145,8 @@
             background: var(--info-color, #17a2b8);
             color: white;
         }
+        
+        .data-buttons-row {
             display: flex;
             gap: 16px;
             justify-content: center;
@@ -1712,6 +1737,7 @@
     
     <!-- Scripts -->
     <script src="script.js"></script>
+     <script src="crm-script.js"></script>
     
     <!-- Debug Script to Ensure Buttons are Visible -->
     <script>
@@ -1835,5 +1861,118 @@
         <!-- Google Drive Sync Scripts -->
         <script src="https://apis.google.com/js/api.js"></script>
         <script src="google-sync.js"></script>
+        
+        <!-- App Configuration (Environment Detection) -->
+        <script src="app-config.js"></script>
+        
+        <!-- Custom Database Autosave System -->
+        <script src="autosave.js"></script>
+        
+        <!-- Authentication Check -->
+        <script>
+            // Check if user is authenticated
+            function checkAuthStatus() {
+                // Skip auth check if backend is not available (GitHub Pages)
+                if (window.appConfig && !window.appConfig.isBackendAvailable()) {
+                    console.log('🌐 Backend not available, skipping authentication');
+                    return true; // Allow access without auth
+                }
+                
+                const token = localStorage.getItem('authToken');
+                if (!token) {
+                    console.log('🔒 User not authenticated, redirecting to login...');
+                    window.location.href = 'login.html';
+                    return false;
+                }
+                return true;
+            }
+            
+            // Custom logout function
+            function customLogout() {
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('userData');
+                console.log('🔒 User logged out');
+                window.location.href = 'login.html';
+            }
+            
+            // Update UI based on authentication
+            function updateAuthUI() {
+                // Check if backend is available
+                const hasBackend = window.appConfig && window.appConfig.isBackendAvailable();
+                
+                if (!hasBackend) {
+                    // GitHub mode - show simplified UI
+                    document.getElementById('loginSection').style.display = 'none';
+                    document.getElementById('customAuthSection').style.display = 'none';
+                    document.getElementById('dbStatusIndicator').style.display = 'none';
+                    console.log('📱 Running in GitHub mode - simplified UI');
+                    return;
+                }
+                
+                const token = localStorage.getItem('authToken');
+                const userData = localStorage.getItem('userData');
+                
+                if (token && userData) {
+                    try {
+                        const user = JSON.parse(userData);
+                        
+                        // Hide Google login, show custom auth
+                        document.getElementById('loginSection').style.display = 'none';
+                        document.getElementById('customAuthSection').style.display = 'flex';
+                        document.getElementById('customUserName').textContent = user.username || user.email;
+                        
+                        // Show database status
+                        document.getElementById('dbStatusIndicator').style.display = 'flex';
+                        
+                        console.log('✅ Custom auth UI updated for user:', user.username);
+                    } catch (error) {
+                        console.error('Error parsing user data:', error);
+                    }
+                } else {
+                    // Show Google login, hide custom auth
+                    document.getElementById('loginSection').style.display = 'block';
+                    document.getElementById('customAuthSection').style.display = 'none';
+                    document.getElementById('dbStatusIndicator').style.display = 'none';
+                }
+            }
+            
+            // Check auth on page load
+            document.addEventListener('DOMContentLoaded', () => {
+                // Wait for app config to initialize
+                setTimeout(() => {
+                    if (!checkAuthStatus()) {
+                        return;
+                    }
+                    
+                    // Update UI
+                    updateAuthUI();
+                    
+                    console.log('✅ User authenticated or backend not available');
+                    
+                    // Only show autosave if backend is available
+                    if (window.appConfig && window.appConfig.isBackendAvailable()) {
+                        console.log('🌐 Backend available, autosave system will start...');
+                        
+                        // Show autosave status
+                        setTimeout(() => {
+                            if (window.autosaveSystem) {
+                                const status = window.autosaveSystem.getSyncStatus();
+                                console.log('🌐 Autosave Status:', status);
+                                
+                                // Show toast notification
+                                if (window.productiveCloud && window.productiveCloud.showToast) {
+                                    window.productiveCloud.showToast('🌐 Autosave system connected to database!', 'success');
+                                }
+                            }
+                        }, 3000);
+                    } else {
+                        console.log('📱 Running in GitHub mode - local storage only');
+                        if (window.productiveCloud && window.productiveCloud.showToast) {
+                            window.productiveCloud.showToast('📱 Running in local storage mode', 'info');
+                        }
+                    }
+                }, 1000); // Wait for app config to load
+            });
+        </script>
     </body>
     </html>

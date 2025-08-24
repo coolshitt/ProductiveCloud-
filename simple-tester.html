@@ -3,134 +3,359 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple Productive Cloud Tester</title>
+    <title>CRM Export Tester</title>
     <style>
-        body { font-family: Arial, sans-serif; background: #0a0a0a; color: #fff; padding: 20px; }
-        .container { max-width: 800px; margin: 0 auto; background: #1a1a1a; padding: 20px; border-radius: 10px; }
-        .header { text-align: center; margin-bottom: 20px; }
-        .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
-        .stat { background: #333; padding: 15px; text-align: center; border-radius: 5px; }
-        .test-item { display: flex; justify-content: space-between; padding: 10px; margin: 5px 0; background: #333; border-radius: 5px; }
-        .result-pass { background: #0a0; color: #fff; padding: 2px 8px; border-radius: 10px; }
-        .result-fail { background: #a00; color: #fff; padding: 2px 8px; border-radius: 10px; }
-        .result-pending { background: #666; color: #fff; padding: 2px 8px; border-radius: 10px; }
-        .btn { padding: 10px 20px; margin: 10px; border: none; border-radius: 5px; cursor: pointer; }
-        .btn-run { background: #0a0; color: #fff; }
-        .btn-clear { background: #666; color: #fff; }
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .btn:hover {
+            background: #0056b3;
+        }
+        .btn-secondary {
+            background: #6c757d;
+        }
+        .btn-secondary:hover {
+            background: #545b62;
+        }
+        .result {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 10px 0;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+        .success { border-color: #28a745; background: #d4edda; }
+        .error { border-color: #dc3545; background: #f8d7da; }
+        .info { border-color: #17a2b8; background: #d1ecf1; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🧪 Simple Productive Cloud Tester</h1>
-            <p>Open your Productive Cloud app in another tab, then run tests here</p>
+    <h1>🔍 CRM Export Tester</h1>
+    <p>Use this page to test if your CRM data is being exported correctly.</p>
+
+    <div class="test-section">
+        <h2>📊 Test CRM Export Function</h2>
+        <p>Click the button below to test if the CRM export function is working:</p>
+        <button class="btn" onclick="testCRMExport()">Test CRM Export</button>
+        <div id="crmExportResult" class="result" style="display: none;"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>🔍 Check CRM Module Status</h2>
+        <p>Check if the CRM module is loaded and accessible:</p>
+        <button class="btn" onclick="checkCRMModule()">Check CRM Module</button>
+        <div id="crmModuleResult" class="result" style="display: none;"></div>
         </div>
 
-        <div class="stats">
-            <div class="stat">
-                <div id="totalTests">0</div>
-                <div>Total</div>
+    <div class="test-section">
+        <h2>💾 Check localStorage for CRM Data</h2>
+        <p>Check what CRM data is stored in localStorage:</p>
+        <button class="btn" onclick="checkLocalStorage()">Check localStorage</button>
+        <div id="localStorageResult" class="result" style="display: none;"></div>
             </div>
-            <div class="stat">
-                <div id="passedTests">0</div>
-                <div>Passed</div>
+
+    <div class="test-section">
+        <h2>🚀 Test Full Export</h2>
+        <p>Test the complete export functionality:</p>
+        <button class="btn" onclick="testFullExport()">Test Full Export</button>
+        <div id="fullExportResult" class="result" style="display: none;"></div>
             </div>
-            <div class="stat">
-                <div id="failedTests">0</div>
-                <div>Failed</div>
+
+    <div class="test-section">
+        <h2>🔄 Force Refresh CRM Data</h2>
+        <p>Force refresh CRM data from localStorage and check what's available:</p>
+        <button class="btn" onclick="forceRefreshCRMData()">Force Refresh CRM</button>
+        <div id="forceRefreshResult" class="result" style="display: none;"></div>
             </div>
-            <div class="stat">
-                <div id="successRate">0%</div>
-                <div>Success</div>
+
+    <div class="test-section">
+        <h2>📥 Manual CRM Import</h2>
+        <p>Manually trigger CRM data import and refresh:</p>
+        <button class="btn" onclick="manualCRMDataImport()">Manual CRM Import</button>
+        <div id="manualImportResult" class="result" style="display: none;"></div>
             </div>
+
+    <div class="test-section">
+        <h2>🔍 Manual CRM Import Check</h2>
+        <p>Manually trigger CRM import data check:</p>
+        <button class="btn" onclick="manualCRMImportCheck()">Manual Import Check</button>
+        <div id="manualImportCheckResult" class="result" style="display: none;"></div>
         </div>
 
-        <div id="testResults"></div>
+    <div class="test-section">
+        <h2>🔍 Check All localStorage Keys</h2>
+        <p>See all available localStorage keys to find CRM data:</p>
+        <button class="btn" onclick="checkAllLocalStorage()">Check All Keys</button>
+        <div id="allKeysResult" class="result" style="display: none;"></div>
+    </div>
 
-        <div style="text-align: center;">
-            <button class="btn btn-run" onclick="runTests()">🚀 Run Tests</button>
-            <button class="btn btn-clear" onclick="clearResults()">🗑️ Clear</button>
+    <div class="test-section">
+        <h2>🔍 CRM Debug Page</h2>
+        <p>Open the comprehensive CRM debug page for detailed testing:</p>
+        <button class="btn" onclick="window.open('debug-crm.html', '_blank')">Open CRM Debug Page</button>
         </div>
+
+    <div class="test-section">
+        <h2>📊 CRM Page</h2>
+        <p>Open the actual CRM page to see if projects are displayed:</p>
+        <button class="btn" onclick="window.open('crm.html', '_blank')">Open CRM Page</button>
     </div>
 
     <script>
-        const tests = [
-            { name: 'Script Loading', test: () => ({ passed: true, message: 'OK' }) },
-            { name: 'Global Instance', test: () => ({ passed: !!window.productiveCloud, message: window.productiveCloud ? 'Found' : 'Not found' }) },
-            { name: 'Calendar Element', test: () => ({ passed: !!document.querySelector('#calendar'), message: 'Calendar found' }) },
-            { name: 'Habit Methods', test: () => ({ passed: !!(window.productiveCloud && window.productiveCloud.showHabitModal), message: 'Methods available' }) },
-            { name: 'Theme Toggle', test: () => ({ passed: !!document.querySelector('#themeToggle'), message: 'Theme toggle found' }) },
-            { name: 'Navigation Links', test: () => ({ passed: document.querySelectorAll('.nav-link').length > 0, message: 'Navigation found' }) },
-            { name: 'LocalStorage', test: () => ({ passed: !!localStorage, message: 'Storage available' }) },
-            { name: 'Responsive Design', test: () => ({ passed: !!document.querySelector('meta[name="viewport"]'), message: 'Viewport meta found' }) }
-        ];
-
-        let results = { total: tests.length, passed: 0, failed: 0 };
-
-        function runTests() {
-            results = { total: tests.length, passed: 0, failed: 0 };
-            updateDisplay();
-            renderTests();
-
-            tests.forEach((test, index) => {
-                setTimeout(() => {
-                    try {
-                        const result = test.test();
-                        if (result.passed) results.passed++;
-                        else results.failed++;
-                        updateTestResult(index, result);
-                        updateDisplay();
-                    } catch (error) {
-                        results.failed++;
-                        updateTestResult(index, { passed: false, message: error.message });
-                        updateDisplay();
-                    }
-                }, index * 500);
-            });
+        function showResult(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `result ${type}`;
+            element.style.display = 'block';
         }
 
-        function updateTestResult(index, result) {
-            const element = document.getElementById(`test-${index}`);
-            if (element) {
-                element.querySelector('.result').textContent = result.passed ? 'Pass' : 'Fail';
-                element.querySelector('.result').className = `result ${result.passed ? 'result-pass' : 'result-fail'}`;
+        function testCRMExport() {
+            try {
+                if (typeof debugCRMExport === 'function') {
+                    const result = debugCRMExport();
+                    showResult('crmExportResult', 
+                        `✅ CRM Export Test Completed!\n\nResult: ${JSON.stringify(result, null, 2)}`, 
+                        'success'
+                    );
+                } else {
+                    showResult('crmExportResult', 
+                        '❌ debugCRMExport function not found!\n\nThis means the main script.js is not loaded.', 
+                        'error'
+                    );
+                }
+            } catch (error) {
+                showResult('crmExportResult', 
+                    `❌ Error testing CRM export: ${error.message}`, 
+                    'error'
+                );
             }
         }
 
-        function updateDisplay() {
-            document.getElementById('totalTests').textContent = results.total;
-            document.getElementById('passedTests').textContent = results.passed;
-            document.getElementById('failedTests').textContent = results.failed;
-            document.getElementById('successRate').textContent = Math.round((results.passed / results.total) * 100) + '%';
+        function checkCRMModule() {
+            try {
+                if (window.projectCRM) {
+                    const moduleInfo = {
+                        module: 'ProjectCRM',
+                        projects: window.projectCRM.projects ? window.projectCRM.projects.length : 0,
+                        theme: window.projectCRM.currentTheme,
+                        hasExportFunction: typeof window.projectCRM.getCRMDataForExport === 'function',
+                        methods: Object.getOwnPropertyNames(Object.getPrototypeOf(window.projectCRM))
+                    };
+                    
+                    showResult('crmModuleResult', 
+                        `✅ CRM Module Found!\n\nModule Info: ${JSON.stringify(moduleInfo, null, 2)}`, 
+                        'success'
+                    );
+                } else {
+                    showResult('crmModuleResult', 
+                        '❌ CRM module not found!\n\nThis could mean:\n1. CRM script is not loaded\n2. CRM script failed to initialize\n3. You need to visit the CRM page first', 
+                        'error'
+                    );
+                }
+            } catch (error) {
+                showResult('crmModuleResult', 
+                    `❌ Error checking CRM module: ${error.message}`, 
+                    'error'
+                );
+            }
         }
 
-        function renderTests() {
-            const container = document.getElementById('testResults');
-            container.innerHTML = '';
-            
-            tests.forEach((test, index) => {
-                const div = document.createElement('div');
-                div.className = 'test-item';
-                div.id = `test-${index}`;
-                div.innerHTML = `
-                    <span>${test.name}</span>
-                    <span class="result result-pending">Pending</span>
-                `;
-                container.appendChild(div);
+        function checkLocalStorage() {
+            try {
+                const crmProjects = localStorage.getItem('projectCRM_projects');
+                const crmTheme = localStorage.getItem('projectCRM_theme');
+                const crmTimerState = localStorage.getItem('crm_timer_state');
+                
+                let projectsData = null;
+                if (crmProjects) {
+                    try {
+                        projectsData = JSON.parse(crmProjects);
+                    } catch (e) {
+                        projectsData = 'Error parsing projects data';
+                    }
+                }
+                
+                const result = {
+                    projects: crmProjects ? 'Found' : 'Not found',
+                    projectsCount: projectsData && Array.isArray(projectsData) ? projectsData.length : 'N/A',
+                    theme: crmTheme || 'Not found',
+                    timerState: crmTimerState ? 'Found' : 'Not found',
+                    sampleProjects: projectsData && Array.isArray(projectsData) ? projectsData.slice(0, 3) : null
+                };
+                
+                showResult('localStorageResult', 
+                    `📊 localStorage CRM Data Check:\n\n${JSON.stringify(result, null, 2)}`, 
+                    crmProjects ? 'success' : 'info'
+                );
+                    } catch (error) {
+                showResult('localStorageResult', 
+                    `❌ Error checking localStorage: ${error.message}`, 
+                    'error'
+                );
+            }
+        }
+
+        function testFullExport() {
+            try {
+                if (typeof exportData === 'function') {
+                    showResult('fullExportResult', 
+                        '✅ Full export function found!\n\nClick the export button in the main app to test it.\n\nNote: This function will download a file, so make sure downloads are enabled.', 
+                        'success'
+                    );
+                } else {
+                    showResult('fullExportResult', 
+                        '❌ Full export function not found!\n\nThis means the main script.js is not loaded or the function is not available.', 
+                        'error'
+                    );
+                }
+            } catch (error) {
+                showResult('fullExportResult', 
+                    `❌ Error testing full export: ${error.message}`, 
+                    'error'
+                );
+            }
+        }
+
+        function forceRefreshCRMData() {
+            try {
+                if (typeof window.forceRefreshCRMData === 'function') {
+                    const result = window.forceRefreshCRMData();
+                    showResult('forceRefreshResult', 
+                        `✅ CRM Data Force Refresh Completed!\n\nResult: ${JSON.stringify(result, null, 2)}`, 
+                        'success'
+                    );
+                } else {
+                    showResult('forceRefreshResult', 
+                        '❌ forceRefreshCRMData function not found!\n\nThis means the main script.js is not loaded.', 
+                        'error'
+                    );
+                }
+            } catch (error) {
+                showResult('forceRefreshResult', 
+                    `❌ Error force refreshing CRM data: ${error.message}`, 
+                    'error'
+                );
+            }
+        }
+
+        function manualCRMDataImport() {
+            try {
+                if (typeof window.manualCRMDataImport === 'function') {
+                    const result = window.manualCRMDataImport();
+                    showResult('manualImportResult', 
+                        `✅ Manual CRM Import Completed!\n\nResult: ${JSON.stringify(result, null, 2)}`, 
+                        'success'
+                    );
+                } else {
+                    showResult('manualImportResult', 
+                        '❌ manualCRMDataImport function not found!\n\nThis means the main script.js is not loaded.', 
+                        'error'
+                    );
+                }
+            } catch (error) {
+                showResult('manualImportResult', 
+                    `❌ Error during manual CRM import: ${error.message}`, 
+                    'error'
+                );
+            }
+        }
+
+        function manualCRMImportCheck() {
+            try {
+                if (window.projectCRM && typeof window.projectCRM.manualImportCheck === 'function') {
+                    const result = window.projectCRM.manualImportCheck();
+                    showResult('manualImportCheckResult', 
+                        `✅ Manual CRM Import Check Completed!\n\nResult: ${JSON.stringify(result, null, 2)}`, 
+                        'success'
+                    );
+                } else {
+                    showResult('manualImportCheckResult', 
+                        '❌ CRM module or manualImportCheck function not found!\n\nThis means the CRM script is not loaded or the function is not available.', 
+                        'error'
+                    );
+                }
+            } catch (error) {
+                showResult('manualImportCheckResult', 
+                    `❌ Error during manual CRM import check: ${error.message}`, 
+                    'error'
+                );
+            }
+        }
+
+        function checkAllLocalStorage() {
+            try {
+                const allKeys = Object.keys(localStorage);
+                const crmRelatedKeys = allKeys.filter(key => 
+                    key.toLowerCase().includes('crm') || 
+                    key.toLowerCase().includes('project') ||
+                    key.toLowerCase().includes('task')
+                );
+                
+                const result = {
+                    totalKeys: allKeys.length,
+                    allKeys: allKeys,
+                    crmRelatedKeys: crmRelatedKeys,
+                    crmData: {}
+                };
+                
+                // Get values for CRM-related keys
+                crmRelatedKeys.forEach(key => {
+                    try {
+                        const value = localStorage.getItem(key);
+                        result.crmData[key] = value ? JSON.parse(value) : value;
+                    } catch (e) {
+                        result.crmData[key] = localStorage.getItem(key);
+                    }
+                });
+                
+                showResult('allKeysResult', 
+                    `📊 All localStorage Keys Check:\n\n${JSON.stringify(result, null, 2)}`, 
+                    crmRelatedKeys.length > 0 ? 'success' : 'info'
+                );
+            } catch (error) {
+                showResult('allKeysResult', 
+                    `❌ Error checking localStorage: ${error.message}`, 
+                    'error'
+                );
+            }
+        }
+
+        // Auto-check on page load
+        window.addEventListener('load', function() {
+            console.log('🔍 CRM Export Tester loaded');
+            console.log('Available functions:', {
+                debugCRMExport: typeof debugCRMExport,
+                exportData: typeof exportData,
+                forceRefreshCRMData: typeof forceRefreshCRMData,
+                projectCRM: window.projectCRM ? 'Available' : 'Not available'
             });
-        }
-
-        function clearResults() {
-            results = { total: tests.length, passed: 0, failed: 0 };
-            updateDisplay();
-            renderTests();
-        }
-
-        // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
-            renderTests();
-            updateDisplay();
         });
     </script>
+
+    <!-- Load the main scripts -->
+    <script src="script.js"></script>
+    <script src="crm-script.js"></script>
 </body>
 </html>

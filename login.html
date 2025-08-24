@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Productive Cloud</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .auth-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+        }
+        
+        .auth-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        
+        .auth-logo {
+            margin-bottom: 30px;
+        }
+        
+        .auth-logo .logo-icon {
+            font-size: 4em;
+            margin-bottom: 10px;
+        }
+        
+        .auth-logo h1 {
+            margin: 0;
+            color: #333;
+            font-size: 2em;
+            font-weight: 700;
+        }
+        
+        .auth-logo .tagline {
+            color: #666;
+            font-size: 1.1em;
+            margin-top: 5px;
+        }
+        
+        .auth-tabs {
+            display: flex;
+            margin-bottom: 30px;
+            border-radius: 10px;
+            background: #f5f5f5;
+            padding: 5px;
+        }
+        
+        .auth-tab {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .auth-tab.active {
+            background: white;
+            color: #667eea;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .auth-form {
+            display: none;
+        }
+        
+        .auth-form.active {
+            display: block;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1em;
+            transition: border-color 0.3s ease;
+            box-sizing: border-box;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .auth-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            margin-top: 10px;
+        }
+        
+        .auth-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .auth-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .auth-footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .auth-footer a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .auth-footer a:hover {
+            text-decoration: underline;
+        }
+        
+        .error-message {
+            background: #fee;
+            color: #c33;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+            display: none;
+        }
+        
+        .success-message {
+            background: #efe;
+            color: #3c3;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+            display: none;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .demo-credentials {
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            font-size: 0.8em;
+            color: #666;
+        }
+        
+        .demo-credentials h4 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+        
+        .demo-credentials p {
+            margin: 5px 0;
+        }
+        
+        @media (max-width: 480px) {
+            .auth-card {
+                padding: 30px 20px;
+                margin: 10px;
+            }
+            
+            .auth-logo .logo-icon {
+                font-size: 3em;
+            }
+            
+            .auth-logo h1 {
+                font-size: 1.6em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-logo">
+                <div class="logo-icon">☁️</div>
+                <h1>Productive Cloud</h1>
+                <div class="tagline">Transform Your Productivity</div>
+            </div>
+            
+            <div class="auth-tabs">
+                <button class="auth-tab active" onclick="switchTab('login')">Login</button>
+                <button class="auth-tab" onclick="switchTab('register')">Register</button>
+            </div>
+            
+            <!-- Error/Success Messages -->
+            <div id="errorMessage" class="error-message"></div>
+            <div id="successMessage" class="success-message"></div>
+            
+            <!-- Login Form -->
+            <form id="loginForm" class="auth-form active">
+                <div class="form-group">
+                    <label for="loginEmail">Email</label>
+                    <input type="email" id="loginEmail" required placeholder="Enter your email">
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">Password</label>
+                    <input type="password" id="loginPassword" required placeholder="Enter your password">
+                </div>
+                <button type="submit" class="auth-btn" id="loginBtn">
+                    <span class="btn-text">Login</span>
+                    <span class="loading" style="display: none;"></span>
+                </button>
+            </form>
+            
+            <!-- Register Form -->
+            <form id="registerForm" class="auth-form">
+                <div class="form-group">
+                    <label for="registerUsername">Username</label>
+                    <input type="text" id="registerUsername" required placeholder="Choose a username">
+                </div>
+                <div class="form-group">
+                    <label for="registerEmail">Email</label>
+                    <input type="email" id="registerEmail" required placeholder="Enter your email">
+                </div>
+                <div class="form-group">
+                    <label for="registerPassword">Password</label>
+                    <input type="password" id="registerPassword" required placeholder="Choose a password (min 6 chars)">
+                </div>
+                <button type="submit" class="auth-btn" id="registerBtn">
+                    <span class="btn-text">Create Account</span>
+                    <span class="loading" style="display: none;"></span>
+                </button>
+            </form>
+            
+            <!-- Demo Credentials -->
+            <div class="demo-credentials">
+                <h4>🧪 Demo Account (for testing)</h4>
+                <p><strong>Email:</strong> demo@productivecloud.com</p>
+                <p><strong>Password:</strong> demo123</p>
+                <p><em>This account will be created automatically on first use</em></p>
+            </div>
+            
+            <div class="auth-footer">
+                <p>Secure authentication powered by custom database</p>
+                <p>Your data is encrypted and stored safely</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const API_BASE_URL = 'http://localhost:5000/api';
+        
+        // Tab switching
+        function switchTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.auth-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Update forms
+            document.querySelectorAll('.auth-form').forEach(form => {
+                form.classList.remove('active');
+            });
+            
+            if (tabName === 'login') {
+                document.getElementById('loginForm').classList.add('active');
+            } else {
+                document.getElementById('registerForm').classList.add('active');
+            }
+            
+            // Clear messages
+            clearMessages();
+        }
+        
+        // Message handling
+        function showMessage(message, type) {
+            clearMessages();
+            const messageElement = document.getElementById(type === 'error' ? 'errorMessage' : 'successMessage');
+            messageElement.textContent = message;
+            messageElement.style.display = 'block';
+        }
+        
+        function clearMessages() {
+            document.getElementById('errorMessage').style.display = 'none';
+            document.getElementById('successMessage').style.display = 'none';
+        }
+        
+        // Loading states
+        function setLoading(buttonId, isLoading) {
+            const button = document.getElementById(buttonId);
+            const btnText = button.querySelector('.btn-text');
+            const loading = button.querySelector('.loading');
+            
+            if (isLoading) {
+                btnText.style.display = 'none';
+                loading.style.display = 'inline-block';
+                button.disabled = true;
+            } else {
+                btnText.style.display = 'inline';
+                loading.style.display = 'none';
+                button.disabled = false;
+            }
+        }
+        
+        // API calls
+        async function makeApiCall(endpoint, data = null, method = 'POST') {
+            try {
+                const options = {
+                    method,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                };
+                
+                if (data) {
+                    options.body = JSON.stringify(data);
+                }
+                
+                const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
+                const result = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(result.error || 'API request failed');
+                }
+                
+                return result;
+            } catch (error) {
+                throw error;
+            }
+        }
+        
+        // Login functionality
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            if (!email || !password) {
+                showMessage('Please fill in all fields', 'error');
+                return;
+            }
+            
+            setLoading('loginBtn', true);
+            
+            try {
+                const result = await makeApiCall('/auth/login', { email, password });
+                
+                // Store token and user info
+                localStorage.setItem('authToken', result.token);
+                localStorage.setItem('userData', JSON.stringify(result.user));
+                
+                showMessage('Login successful! Redirecting...', 'success');
+                
+                // Redirect to main app
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 1500);
+                
+            } catch (error) {
+                showMessage(error.message, 'error');
+            } finally {
+                setLoading('loginBtn', false);
+            }
+        });
+        
+        // Registration functionality
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const username = document.getElementById('registerUsername').value;
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            
+            if (!username || !email || !password) {
+                showMessage('Please fill in all fields', 'error');
+                return;
+            }
+            
+            if (password.length < 6) {
+                showMessage('Password must be at least 6 characters long', 'error');
+                return;
+            }
+            
+            setLoading('registerBtn', true);
+            
+            try {
+                const result = await makeApiCall('/auth/register', { username, email, password });
+                
+                showMessage('Account created successfully! You can now login.', 'success');
+                
+                // Switch to login tab
+                setTimeout(() => {
+                    switchTab('login');
+                    document.getElementById('loginEmail').value = email;
+                }, 1500);
+                
+            } catch (error) {
+                showMessage(error.message, 'error');
+            } finally {
+                setLoading('registerBtn', false);
+            }
+        });
+        
+        // Check if user is already logged in
+        window.addEventListener('load', () => {
+            const token = localStorage.getItem('authToken');
+            if (token) {
+                // User is logged in, redirect to main app
+                window.location.href = 'index.html';
+            }
+        });
+        
+        // Auto-create demo account if it doesn't exist
+        async function createDemoAccount() {
+            try {
+                const result = await makeApiCall('/auth/register', {
+                    username: 'demo',
+                    email: 'demo@productivecloud.com',
+                    password: 'demo123'
+                });
+                console.log('Demo account created:', result);
+            } catch (error) {
+                // Demo account already exists, that's fine
+                console.log('Demo account already exists');
+            }
+        }
+        
+        // Create demo account on page load
+        createDemoAccount();
+    </script>
+</body>
+</html>

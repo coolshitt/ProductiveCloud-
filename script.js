@@ -1604,6 +1604,7 @@ class ProductiveCloud {
 
             // 2. CRM MODULE (Detect if available)
             if (window.projectCRM && typeof window.projectCRM.getCRMDataForExport === 'function') {
+                try {
                 const crmData = window.projectCRM.getCRMDataForExport();
                 modules.crm = {
                     module: 'Project CRM',
@@ -1611,19 +1612,34 @@ class ProductiveCloud {
                     data: crmData
                 };
                 totalModules++;
-                console.log('✅ CRM module detected and included');
-            } else {
+                    console.log('✅ CRM module detected and included:', crmData);
+                } catch (error) {
+                    console.warn('⚠️ Error getting CRM data from module:', error);
+                    // Fall back to localStorage
+                }
+            }
+            
+            // If CRM module didn't work, try localStorage
+            if (!modules.crm) {
                 // Try to get CRM data from localStorage if module isn't loaded
                 const crmProjects = localStorage.getItem('projectCRM_projects');
                 const crmTheme = localStorage.getItem('projectCRM_theme');
                 const crmTimerState = localStorage.getItem('crm_timer_state');
                 
+                console.log('🔍 Checking localStorage for CRM data:');
+                console.log('Projects key:', crmProjects ? 'Found' : 'Not found');
+                console.log('Theme key:', crmTheme ? 'Found' : 'Not found');
+                console.log('Timer key:', crmTimerState ? 'Found' : 'Not found');
+                
                 if (crmProjects || crmTheme || crmTimerState) {
                     try {
+                        const projects = crmProjects ? JSON.parse(crmProjects) : [];
+                        const timer = crmTimerState ? JSON.parse(crmTimerState) : { totalTime: 0, savedSessions: [] };
+                        
                         const crmData = {
-                            projects: crmProjects ? JSON.parse(crmProjects) : [],
+                            projects: projects,
                             theme: crmTheme || 'light',
-                            timer: crmTimerState ? JSON.parse(crmTimerState) : { totalTime: 0, savedSessions: [] }
+                            timer: timer
                         };
                         
                         modules.crm = {
@@ -1632,24 +1648,57 @@ class ProductiveCloud {
                             data: crmData
                         };
                         totalModules++;
-                        console.log('✅ CRM data found in localStorage and included');
+                        console.log('✅ CRM data found in localStorage and included:', crmData);
+                        console.log(`📋 Projects count: ${projects.length}`);
                     } catch (parseError) {
                         console.warn('⚠️ Error parsing CRM data from localStorage:', parseError);
                         modules.crm = {
                             module: 'Project CRM',
                             version: '1.0',
                             data: null,
-                            note: 'Error parsing stored CRM data'
+                            note: 'Error parsing stored CRM data: ' + parseError.message
                         };
                     }
+                } else {
+                    // Check for alternative localStorage keys
+                    const allKeys = Object.keys(localStorage);
+                    const crmRelatedKeys = allKeys.filter(key => 
+                        key.toLowerCase().includes('crm') || 
+                        key.toLowerCase().includes('project') ||
+                        key.toLowerCase().includes('task')
+                    );
+                    
+                    console.log('🔍 Alternative CRM-related keys found:', crmRelatedKeys);
+                    
+                    if (crmRelatedKeys.length > 0) {
+                        const alternativeData = {};
+                        crmRelatedKeys.forEach(key => {
+                            try {
+                                const value = localStorage.getItem(key);
+                                alternativeData[key] = value ? JSON.parse(value) : value;
+                            } catch (e) {
+                                alternativeData[key] = localStorage.getItem(key);
+                            }
+                        });
+                        
+                        modules.crm = {
+                            module: 'Project CRM',
+                            version: '1.0',
+                            data: alternativeData,
+                            note: 'Found alternative CRM data keys',
+                            source: 'localStorage fallback'
+                        };
+                        totalModules++;
+                        console.log('✅ Alternative CRM data included:', alternativeData);
                 } else {
                     modules.crm = {
                         module: 'Project CRM',
                         version: '1.0',
                         data: null,
-                        note: 'No CRM data available'
+                            note: 'No CRM data available in localStorage'
                     };
-                    console.log('ℹ️ No CRM data found');
+                        console.log('ℹ️ No CRM data found in localStorage');
+                    }
                 }
             }
 
@@ -2055,7 +2104,12 @@ class ProductiveCloud {
                 try {
                     Object.entries(data.localStorage.data).forEach(([key, value]) => {
                         if (value !== null && value !== undefined) {
+                            // CRITICAL FIX: Properly stringify objects before storing
+                            if (typeof value === 'object') {
+                                localStorage.setItem(key, JSON.stringify(value));
+                            } else {
                             localStorage.setItem(key, value);
+                            }
                         }
                     });
                     console.log('✅ localStorage data imported successfully');
@@ -2529,6 +2583,250 @@ class ProductiveCloud {
     delay(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
+
+    /**
+     * Debug function to test CRM data export
+     */
+    debugCRMExport() {
+        console.log('🔍 Debugging CRM Export...');
+        
+        // Check if CRM module is available
+        if (window.projectCRM) {
+            console.log('✅ CRM module found:', window.projectCRM);
+            
+            // Check if export function exists
+            if (typeof window.projectCRM.getCRMDataForExport === 'function') {
+                console.log('✅ CRM export function found');
+                
+                try {
+                    const crmData = window.projectCRM.getCRMDataForExport();
+                    console.log('📊 CRM Data for Export:', crmData);
+                    
+                    // Check specific data
+                    if (crmData.projects) {
+                        console.log(`📋 Projects count: ${crmData.projects.length}`);
+                        console.log('📋 Projects:', crmData.projects);
+                    }
+                    
+                    if (crmData.timer) {
+                        console.log('⏱️ Timer data:', crmData.timer);
+                    }
+                    
+                    return crmData;
+                } catch (error) {
+                    console.error('❌ Error getting CRM data:', error);
+                    return null;
+                }
+            } else {
+                console.log('❌ CRM export function not found');
+                return null;
+            }
+        } else {
+            console.log('❌ CRM module not found');
+            
+            // Check localStorage for CRM data
+            const crmProjects = localStorage.getItem('projectCRM_projects');
+            const crmTheme = localStorage.getItem('projectCRM_theme');
+            const crmTimerState = localStorage.getItem('crm_timer_state');
+            
+            console.log('🔍 Checking localStorage for CRM data:');
+            console.log('Projects:', crmProjects ? 'Found' : 'Not found');
+            console.log('Theme:', crmTheme || 'Not found');
+            console.log('Timer State:', crmTimerState ? 'Found' : 'Not found');
+            
+            if (crmProjects) {
+                try {
+                    const projects = JSON.parse(crmProjects);
+                    console.log(`📋 Projects in localStorage: ${projects.length}`);
+                    console.log('📋 Projects:', projects);
+                } catch (e) {
+                    console.error('❌ Error parsing projects from localStorage:', e);
+                }
+            }
+            
+            return null;
+        }
+    }
+
+    /**
+     * Force refresh CRM data from localStorage
+     */
+    forceRefreshCRMData() {
+        console.log('🔄 Force refreshing CRM data...');
+        
+        // Check all localStorage keys
+        const allKeys = Object.keys(localStorage);
+        console.log('🔍 All localStorage keys:', allKeys);
+        
+        // Filter for CRM-related keys
+        const crmKeys = allKeys.filter(key => 
+            key.includes('crm') || key.includes('project') || key.includes('task')
+        );
+        console.log('🔍 CRM-related keys found:', crmKeys);
+        
+        // Parse and log CRM data
+        crmKeys.forEach(key => {
+            try {
+                const value = localStorage.getItem(key);
+                console.log(`📦 Key: ${key}, Value:`, value);
+                
+                if (value && (key.includes('projects') || key.includes('tasks'))) {
+                    try {
+                        const parsed = JSON.parse(value);
+                        console.log(`📋 Parsed ${key}:`, parsed);
+                        if (Array.isArray(parsed)) {
+                            console.log(`📊 Array length: ${parsed.length}`);
+                            if (parsed.length > 0) {
+                                console.log(`📋 First item:`, parsed[0]);
+                            }
+                        }
+                    } catch (parseError) {
+                        console.log(`⚠️ Could not parse ${key}:`, parseError);
+                    }
+                }
+            } catch (error) {
+                console.error(`❌ Error processing key ${key}:`, error);
+            }
+        });
+        
+        // If CRM module is available, force refresh
+        if (window.projectCRM && typeof window.projectCRM.forceRefreshFromStorage === 'function') {
+            console.log('🔄 Calling CRM module force refresh...');
+            window.projectCRM.forceRefreshFromStorage();
+        } else {
+            console.log('⚠️ CRM module not available for force refresh');
+        }
+    }
+
+    /**
+     * Manually trigger CRM data import and refresh
+     */
+    manualCRMDataImport() {
+        console.log('🚀 Manually triggering CRM data import...');
+        
+        try {
+            // Check if CRM data exists in localStorage
+            const crmProjects = localStorage.getItem('projectCRM_projects');
+            const crmTheme = localStorage.getItem('projectCRM_theme');
+            const crmTimerState = localStorage.getItem('crm_timer_state');
+            
+            console.log('🔍 CRM data in localStorage:');
+            console.log('📦 Projects:', crmProjects);
+            console.log('🎨 Theme:', crmTheme);
+            console.log('⏱️ Timer:', crmTimerState);
+            
+            if (crmProjects) {
+                try {
+                    const parsedProjects = JSON.parse(crmProjects);
+                    console.log('📋 Parsed projects:', parsedProjects);
+                    console.log('📊 Projects count:', parsedProjects.length);
+                    
+                    if (Array.isArray(parsedProjects) && parsedProjects.length > 0) {
+                        // Set import flags to trigger CRM refresh
+                        localStorage.setItem('crm_data_imported', 'true');
+                        localStorage.setItem('crm_import_timestamp', new Date().toISOString());
+                        
+                        console.log('✅ Import flags set, CRM should refresh automatically');
+                        
+                        // If CRM module is available, force immediate refresh
+                        if (window.projectCRM) {
+                            console.log('🔄 Forcing immediate CRM refresh...');
+                            window.projectCRM.forceRefreshFromStorage();
+                        }
+                        
+                        this.showToast('✅ CRM data import triggered! Check the CRM page.', 'success');
+                    } else {
+                        console.log('⚠️ No valid projects found');
+                        this.showToast('⚠️ No valid CRM projects found in localStorage', 'warning');
+                    }
+                } catch (parseError) {
+                    console.error('❌ Error parsing CRM projects:', parseError);
+                    this.showToast('❌ Error parsing CRM data', 'error');
+                }
+            } else {
+                console.log('⚠️ No CRM projects found in localStorage');
+                this.showToast('⚠️ No CRM data found in localStorage', 'warning');
+            }
+        } catch (error) {
+            console.error('❌ Error during manual CRM import:', error);
+            this.showToast('❌ Error during CRM import', 'error');
+        }
+    }
+
+    checkCRMDataStatus() {
+        console.log('📊 Checking CRM data status...');
+        
+        const crmProjects = localStorage.getItem('projectCRM_projects');
+        const crmTheme = localStorage.getItem('projectCRM_theme');
+        const crmTimerState = localStorage.getItem('crm_timer_state');
+        const importFlag = localStorage.getItem('crm_data_imported');
+        const importTimestamp = localStorage.getItem('crm_import_timestamp');
+        
+        let statusMessage = '📊 CRM Data Status:\n\n';
+        
+        if (crmProjects) {
+            try {
+                const parsed = JSON.parse(crmProjects);
+                statusMessage += `📦 Projects: Found ${Array.isArray(parsed) ? parsed.length : 'Invalid format'}\n`;
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    statusMessage += `  - Sample: ${parsed[0].name || 'Unnamed'}\n`;
+                }
+            } catch (e) {
+                statusMessage += `📦 Projects: Parse error\n`;
+            }
+        } else {
+            statusMessage += `📦 Projects: Not found\n`;
+        }
+        
+        statusMessage += `🎨 Theme: ${crmTheme || 'Not found'}\n`;
+        statusMessage += `⏱️ Timer: ${crmTimerState ? 'Found' : 'Not found'}\n`;
+        statusMessage += `🔄 Import Flag: ${importFlag || 'Not set'}\n`;
+        statusMessage += `⏰ Import Time: ${importTimestamp || 'Not set'}\n\n`;
+        
+        if (window.projectCRM) {
+            statusMessage += `📊 CRM Module Status:\n`;
+            statusMessage += `  - Projects in memory: ${window.projectCRM.projects.length}\n`;
+            statusMessage += `  - Theme: ${window.projectCRM.currentTheme}\n`;
+            statusMessage += `  - Methods available: ${typeof window.projectCRM.renderProjects === 'function' ? 'Yes' : 'No'}\n`;
+        } else {
+            statusMessage += `📊 CRM Module: Not loaded\n`;
+        }
+        
+        this.showToast(statusMessage, 'info');
+        console.log(statusMessage);
+    }
+
+    /**
+     * Repair corrupted CRM data in localStorage
+     */
+    repairCorruptedCRMData() {
+        try {
+            console.log('🔧 Attempting to repair corrupted CRM data...');
+            
+            // Check for corrupted projects data
+            const projects = localStorage.getItem('projectCRM_projects');
+            if (projects && projects === '[object Object]') {
+                console.log('🚨 Found corrupted projects data, attempting repair...');
+                
+                // Try to get data from the CRM module if available
+                if (window.projectCRM && window.projectCRM.projects && window.projectCRM.projects.length > 0) {
+                    console.log('✅ Found valid projects in CRM module, repairing localStorage...');
+                    localStorage.setItem('projectCRM_projects', JSON.stringify(window.projectCRM.projects));
+                    console.log('✅ Projects data repaired successfully!');
+                    return true;
+                } else {
+                    console.log('⚠️ No valid projects found in CRM module for repair');
+                    return false;
+                }
+            }
+            
+            console.log('✅ No corrupted data found or repair not needed');
+            return true;
+        } catch (error) {
+            console.error('❌ Error repairing CRM data:', error);
+            return false;
+        }
+    }
 }
 
 // Initialize app when page loads
@@ -2548,6 +2846,49 @@ document.addEventListener('DOMContentLoaded', () => {
 function handleCredentialResponse(response) {
     if (window.productiveCloud) {
         window.productiveCloud.handleCredentialResponse(response);
+    }
+}
+
+// Global functions for CRM operations
+function checkCRMDataStatus() {
+    if (window.productiveCloud) {
+        window.productiveCloud.checkCRMDataStatus();
+    } else {
+        console.log('ProductiveCloud instance not available');
+    }
+}
+
+function manualCRMDataImport() {
+    if (window.productiveCloud) {
+        window.productiveCloud.manualCRMDataImport();
+    } else {
+        console.log('ProductiveCloud instance not available');
+    }
+}
+
+function forceRefreshCRMData() {
+    if (window.productiveCloud) {
+        window.productiveCloud.forceRefreshCRMData();
+    } else {
+        console.log('ProductiveCloud instance not available');
+    }
+}
+
+function debugCRMExport() {
+    if (window.productiveCloud) {
+        return window.productiveCloud.debugCRMExport();
+    } else {
+        console.log('ProductiveCloud instance not available');
+        return null;
+    }
+}
+
+function repairCorruptedCRMData() {
+    if (window.productiveCloud) {
+        return window.productiveCloud.repairCorruptedCRMData();
+    } else {
+        console.log('ProductiveCloud instance not available');
+        return null;
     }
 }
 

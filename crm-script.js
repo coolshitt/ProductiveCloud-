@@ -336,11 +336,11 @@ class ProjectCRM {
     }
 
     /**
-     * Check for any newly imported data and refresh if needed
+     * Enhanced import data check with better validation
      */
     checkForImportedData() {
         try {
-            console.log('🔍 Checking for newly imported CRM data...');
+            console.log('🔍 Enhanced check for newly imported CRM data...');
             console.log('📋 Current instance projects:', this.projects);
             
             // Check if projects were imported
@@ -352,12 +352,22 @@ class ProjectCRM {
                     const parsedProjects = JSON.parse(storedProjects);
                     console.log('📋 Parsed stored projects:', parsedProjects);
                     
-                    if (Array.isArray(parsedProjects) && parsedProjects.length > 0 && 
-                        JSON.stringify(parsedProjects) !== JSON.stringify(this.projects)) {
-                        console.log('🔄 New projects detected, refreshing...');
+                    // Enhanced validation: check if we have new or different data
+                    const hasNewData = Array.isArray(parsedProjects) && parsedProjects.length > 0;
+                    const dataIsDifferent = JSON.stringify(parsedProjects) !== JSON.stringify(this.projects);
+                    
+                    console.log('🔍 Data validation:', {
+                        hasNewData,
+                        dataIsDifferent,
+                        storedCount: parsedProjects.length,
+                        currentCount: this.projects.length
+                    });
+                    
+                    if (hasNewData && dataIsDifferent) {
+                        console.log('🔄 New projects detected, performing enhanced refresh...');
                         console.log('📊 Projects before update:', this.projects);
                         
-                        // Validate and clean the projects data
+                        // Enhanced validation and cleaning
                         this.projects = parsedProjects.map(project => ({
                             id: project.id || this.generateId(),
                             name: project.name || 'Unnamed Project',
@@ -365,20 +375,37 @@ class ProjectCRM {
                             progress: project.progress || 0,
                             cost: project.cost || 0,
                             notes: project.notes || '',
-                            tasks: Array.isArray(project.tasks) ? project.tasks : [],
+                            tasks: Array.isArray(project.tasks) ? project.tasks.map(task => ({
+                                id: task.id || this.generateId(),
+                                name: task.name || 'Unnamed Task',
+                                completed: task.completed || false,
+                                priority: task.priority || 'medium',
+                                dueDate: task.dueDate || null,
+                                notes: task.notes || ''
+                            })) : [],
                             createdAt: project.createdAt || new Date().toISOString(),
                             updatedAt: project.updatedAt || new Date().toISOString()
                         }));
                         
-                        console.log('📊 Projects after update and validation:', this.projects);
+                        console.log('📊 Projects after enhanced update and validation:', this.projects);
                         
-                        // Validate and repair the data structure
+                        // Enhanced validation and repair
                         this.validateAndRepairProjects();
                         
+                        // Force interface refresh
                         this.renderProjects();
                         this.updateStats();
+                        
+                        // Show success notification
+                        if (typeof this.showToast === 'function') {
+                            this.showToast(`✅ Loaded ${this.projects.length} projects from backup!`, 'success');
+                        }
+                        
+                        console.log('✅ Enhanced import data refresh completed successfully');
+                    } else if (hasNewData && !dataIsDifferent) {
+                        console.log('ℹ️ Projects data is identical, no refresh needed');
                     } else {
-                        console.log('ℹ️ No new projects detected or projects are identical');
+                        console.log('⚠️ No valid projects data found in stored data');
                     }
                 } catch (parseError) {
                     console.error('❌ Error parsing stored projects:', parseError);
@@ -409,9 +436,9 @@ class ProjectCRM {
                 }
             }
             
-            console.log('✅ Import data check completed');
+            console.log('✅ Enhanced import data check completed');
         } catch (error) {
-            console.error('Error checking for imported data:', error);
+            console.error('Error during enhanced import data check:', error);
         }
     }
 
@@ -2620,6 +2647,22 @@ class ProjectCRM {
                 savedSessions: this.savedSessions
             },
             module: 'Project CRM'
+        };
+    }
+
+    /**
+     * Public method to manually trigger import data check
+     * This can be called from the main application
+     */
+    manualImportCheck() {
+        console.log('🚀 Manual import check triggered...');
+        this.checkForImportedData();
+        this.checkForMainAppImport();
+        return {
+            projectsCount: this.projects.length,
+            projects: this.projects,
+            theme: this.currentTheme,
+            message: 'Manual import check completed'
         };
     }
 }
