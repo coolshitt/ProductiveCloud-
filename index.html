@@ -90,13 +90,7 @@
         <header class="main-header">
             <div class="header-container">
                 <div class="header-left">
-                    <div class="logo">
-                        <div class="logo-icon">☁️</div>
-                        <div class="logo-text">
-                            <h1>Productive Cloud</h1>
-                            <span class="tagline">Transform Your Productivity</span>
-                        </div>
-                    </div>
+                    <h1 class="app-title">Productive Cloud</h1>
                 </div>
                 
                 <div class="header-center">
@@ -143,10 +137,6 @@
                                     <span class="dropdown-text">GIF Backgrounds</span>
                                 </button>
                                 <div class="dropdown-divider"></div>
-                                <button id="testerToggle" class="dropdown-item tester-item">
-                                    <span class="dropdown-icon">🧪</span>
-                                    <span class="dropdown-text">QA Tester</span>
-                                </button>
                                 <a href="#data-management" class="dropdown-item" data-view="dataManagement">
                                     <span class="dropdown-icon">💾</span>
                                     <span class="dropdown-text">Data Management</span>
@@ -159,9 +149,14 @@
                 <div class="header-right">
                     <div class="header-actions">
                         <!-- Mobile Menu Button -->
-                        <button class="mobile-menu-btn" aria-label="Mobile menu">
-                            ☰
+                        <button id="mobileMenuToggle" class="mobile-menu-btn" aria-label="Mobile menu">
+                            <span class="hamburger-icon">
+                                <span class="hamburger-line"></span>
+                                <span class="hamburger-line"></span>
+                                <span class="hamburger-line"></span>
+                            </span>
                         </button>
+<<<<<<< HEAD
                         
                         <button id="themeToggle" class="theme-toggle" aria-label="Toggle dark/light mode">
                             <span id="themeIcon">🌙</span>
@@ -204,10 +199,98 @@
                             <span id="customUserName" class="custom-user-name"></span>
                             <button id="customLogoutBtn" class="custom-logout-btn" onclick="customLogout()">Logout</button>
                         </div>
+=======
+>>>>>>> 8b98c1675b59d642af977e843f62b6ffe7b80dca
                     </div>
                 </div>
             </div>
         </header>
+
+        <!-- Mobile Navigation Overlay -->
+        <div id="mobileNavOverlay" class="mobile-nav-overlay">
+            <div class="mobile-nav-header">
+                <div class="mobile-nav-title">
+                    <h2>Menu</h2>
+                </div>
+                <button id="closeMobileNav" class="mobile-nav-close" aria-label="Close mobile menu">
+                    <span class="close-icon">✕</span>
+                </button>
+            </div>
+            
+            <nav class="mobile-nav">
+                <div class="mobile-nav-section">
+                    <h3>📱 Main Navigation</h3>
+                    <a href="#calendar" class="mobile-nav-link" data-view="calendar">
+                        <span class="mobile-nav-icon">📅</span>
+                        <span>Calendar</span>
+                    </a>
+                    <a href="#habits" class="mobile-nav-link" data-view="weekly">
+                        <span class="mobile-nav-icon">📊</span>
+                        <span>Habits</span>
+                    </a>
+                    <a href="crm.html" class="mobile-nav-link">
+                        <span class="mobile-nav-icon">🚀</span>
+                        <span>CRM</span>
+                    </a>
+                </div>
+                
+                <div class="mobile-nav-section">
+                    <h3>⚡ Features</h3>
+                    <a href="#analytics" class="mobile-nav-link" data-view="analytics">
+                        <span class="mobile-nav-icon">📈</span>
+                        <span>Analytics</span>
+                    </a>
+                    <a href="#goals" class="mobile-nav-link" data-view="goals">
+                        <span class="mobile-nav-icon">🎯</span>
+                        <span>Goals</span>
+                    </a>
+                    <button id="mobileGifControlsToggle" class="mobile-nav-link">
+                        <span class="mobile-nav-icon">🎬</span>
+                        <span>GIF Backgrounds</span>
+                    </button>
+                    <a href="#data-management" class="mobile-nav-link" data-view="dataManagement">
+                        <span class="mobile-nav-icon">💾</span>
+                        <span>Data Management</span>
+                    </a>
+                </div>
+                
+                <div class="mobile-nav-section">
+                    <h3>🔧 Quick Actions</h3>
+                    <button onclick="openGoogleSyncPanel()" class="mobile-nav-link">
+                        <span class="mobile-nav-icon">☁️</span>
+                        <span>Google Drive Sync</span>
+                    </button>
+                    <button onclick="exportData()" class="mobile-nav-link">
+                        <span class="mobile-nav-icon">💾</span>
+                        <span>Export Data</span>
+                    </button>
+                    <button onclick="importData()" class="mobile-nav-link">
+                        <span class="mobile-nav-icon">📁</span>
+                        <span>Import Data</span>
+                    </button>
+                </div>
+                
+                <div class="mobile-nav-section">
+                    <h3>🎨 Settings</h3>
+                    <button id="mobileThemeToggle" class="mobile-nav-link">
+                        <span class="mobile-nav-icon">🌙</span>
+                        <span>Toggle Theme</span>
+                    </button>
+                </div>
+                
+                <div class="mobile-nav-section">
+                    <h3>🔐 Account</h3>
+                    <div id="mobileGoogleSignIn" class="mobile-google-signin">
+                        <div id="g_id_onload"
+                             data-client_id="98407757751-5genvi1t46i3oo802k1nhss9aqoopbq2.apps.googleusercontent.com"
+                             data-callback="handleCredentialResponse"
+                             data-auto_prompt="false">
+                        </div>
+                        <div class="g_id_signin" data-type="standard"></div>
+                    </div>
+                </div>
+            </nav>
+        </div>
 
         <!-- Main Content -->
         <main class="main-content">
@@ -761,40 +844,7 @@
         </div>
     </div>
 
-    <!-- QA Tester Panel -->
-    <div class="tester-panel" id="testerPanel" style="display: none;">
-        <div class="tester-header">
-            <h3>🧪 QA Tester</h3>
-            <button class="tester-close" onclick="toggleTester()">×</button>
-        </div>
-        <div class="tester-content">
-            <div class="tester-stats">
-                <div class="stat-item">
-                    <span id="totalTests">0</span>
-                    <label>Total</label>
-                </div>
-                <div class="stat-item">
-                    <span id="passedTests">0</span>
-                    <label>Passed</label>
-                </div>
-                <div class="stat-item">
-                    <span id="failedTests">0</span>
-                    <label>Failed</label>
-                </div>
-                <div class="stat-item">
-                    <span id="successRate">0%</span>
-                    <label>Success</label>
-                </div>
-            </div>
-            <div class="tester-actions">
-                <button class="btn btn-primary" onclick="runAllTests()">🚀 Run Tests</button>
-                <button class="btn btn-secondary" onclick="clearTestResults()">🗑️ Clear</button>
-            </div>
-            <div class="test-results" id="testResults">
-                <!-- Test results will be populated here -->
-            </div>
-        </div>
-    </div>
+    
 
     <!-- Toast Notifications -->
     <div id="toastContainer" class="toast-container"></div>
@@ -876,6 +926,7 @@
     <!-- Scripts -->
     <script src="script.js"></script>
     
+<<<<<<< HEAD
     <!-- Additional Styles for Data Management -->
     <style>
         .dropdown-section-title {
@@ -1976,3 +2027,10 @@
         </script>
     </body>
     </html>
+=======
+    <!-- Google Drive Sync Scripts -->
+    <script src="https://apis.google.com/js/api.js"></script>
+    <script src="google-sync.js"></script>
+</body>
+</html>
+>>>>>>> 8b98c1675b59d642af977e843f62b6ffe7b80dca

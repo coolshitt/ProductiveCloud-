@@ -210,7 +210,7 @@
         <div class="sync-actions">
             <button onclick="window.open('index.html', '_blank')">🏠 Open Main App</button>
             <button onclick="window.open('crm.html', '_blank')">🏢 Open CRM</button>
-            <button onclick="testGoogleSync()">🧪 Test Sync</button>
+            
         </div>
     </div>
     
@@ -373,31 +373,7 @@
             addLogEntry('🔄 Sync status refreshed', 'info');
         }
         
-        // Test Google sync functionality
-        async function testGoogleSync() {
-            if (!window.googleDriveSync) {
-                addLogEntry('❌ Google Drive sync not available', 'error');
-                return;
-            }
-            
-            if (!window.googleDriveSync.isAuthenticated) {
-                addLogEntry('⚠️ Please sign in to Google Drive first', 'warning');
-                return;
-            }
-            
-            addLogEntry('🧪 Testing Google Drive sync...', 'info');
-            
-            try {
-                const syncResult = await window.googleDriveSync.manualSync();
-                if (syncResult) {
-                    addLogEntry('✅ Manual sync test successful', 'success');
-                } else {
-                    addLogEntry('❌ Manual sync test failed', 'error');
-                }
-            } catch (error) {
-                addLogEntry(`❌ Sync test error: ${error.message}`, 'error');
-            }
-        }
+
         
         // Check system status
         function checkSystemStatus() {

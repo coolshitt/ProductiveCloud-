@@ -21,27 +21,93 @@
     <!-- App Container -->
     <div id="appContainer" class="app-container" style="display: none;">
         <!-- Header -->
-        <header class="main-header">
+        <header class="crm-header">
             <div class="header-content">
                 <div class="header-left">
-                    <h1 class="app-title">📊 Project CRM</h1>
-                    <a href="index.html" class="btn btn-secondary back-button">
-                        ← Back to Productive Cloud
-                    </a>
+                    <h1 class="app-title">Project CRM</h1>
                 </div>
+                
+                <div class="header-center">
+                    <nav class="crm-nav">
+                        <a href="#projects" class="nav-link active" data-section="projects">
+                            <span class="nav-icon">📁</span>
+                            <span class="nav-text">Projects</span>
+                        </a>
+                        <a href="#tasks" class="nav-link" data-section="tasks">
+                            <span class="nav-icon">✅</span>
+                            <span class="nav-text">Tasks</span>
+                        </a>
+                        <a href="#timer" class="nav-link" data-section="timer">
+                            <span class="nav-icon">⏱️</span>
+                            <span class="nav-text">Timer</span>
+                        </a>
+                    </nav>
+                </div>
+                
                 <div class="header-right">
-                    <button id="syncDataBtn" class="btn btn-secondary sync-button" title="Sync Data" onclick="forceRefreshCRM()">
-                        🔄 Sync
-                    </button>
-                    <button id="openTimer" class="timer-button" aria-label="Open Work Timer" title="Work Timer">
-                        <span class="timer-icon">⏱️</span>
-                    </button>
-                    <button id="themeToggle" class="theme-toggle" aria-label="Toggle theme">
-                        <span class="theme-icon">🌙</span>
-                    </button>
+                    <div class="header-actions">
+                        <!-- Mobile Menu Button for CRM -->
+                        <button id="crmMobileMenuToggle" class="mobile-menu-btn" aria-label="Mobile menu">
+                            <span class="hamburger-icon">
+                                <span class="hamburger-line"></span>
+                                <span class="hamburger-line"></span>
+                                <span class="hamburger-line"></span>
+                            </span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </header>
+
+        <!-- Mobile Navigation Overlay for CRM -->
+        <div id="crmMobileNavOverlay" class="mobile-nav-overlay">
+            <div class="mobile-nav-header">
+                <div class="mobile-nav-title">
+                    <h2>Menu</h2>
+                </div>
+                <button id="closeCrmMobileNav" class="mobile-nav-close" aria-label="Close mobile menu">
+                    <span class="close-icon">✕</span>
+                </button>
+            </div>
+            
+            <nav class="mobile-nav">
+                <div class="mobile-nav-section">
+                    <h3>📱 CRM Navigation</h3>
+                    <a href="#projects" class="mobile-nav-link" data-section="projects">
+                        <span class="mobile-nav-icon">📁</span>
+                        <span>Projects</span>
+                    </a>
+                    <a href="#tasks" class="mobile-nav-link" data-section="tasks">
+                        <span class="mobile-nav-icon">✅</span>
+                        <span>Tasks</span>
+                    </a>
+                    <a href="#timer" class="mobile-nav-link" data-section="timer">
+                        <span class="mobile-nav-icon">⏱️</span>
+                        <span>Timer</span>
+                    </a>
+                </div>
+                
+                <div class="mobile-nav-section">
+                    <h3>🔧 Quick Actions</h3>
+                    <button onclick="forceRefreshCRM()" class="mobile-nav-link">
+                        <span class="mobile-nav-icon">🔄</span>
+                        <span>Sync Data</span>
+                    </button>
+                    <button onclick="window.open('index.html', '_self')" class="mobile-nav-link">
+                        <span class="mobile-nav-icon">🏠</span>
+                        <span>Back to Main App</span>
+                    </button>
+                </div>
+                
+                <div class="mobile-nav-section">
+                    <h3>🎨 Settings</h3>
+                    <button id="crmMobileThemeToggle" class="mobile-nav-link">
+                        <span class="mobile-nav-icon">🌙</span>
+                        <span>Toggle Theme</span>
+                    </button>
+                </div>
+            </nav>
+        </div>
 
         <!-- Main Content -->
         <main class="main-content">

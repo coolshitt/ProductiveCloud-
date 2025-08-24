@@ -2650,6 +2650,7 @@ class ProjectCRM {
         };
     }
 
+<<<<<<< HEAD
     /**
      * Public method to manually trigger import data check
      * This can be called from the main application
@@ -2664,6 +2665,167 @@ class ProjectCRM {
             theme: this.currentTheme,
             message: 'Manual import check completed'
         };
+=======
+    // Initialize mobile navigation for CRM
+    initCRMMobileNavigation() {
+        const crmMobileMenuToggle = document.getElementById('crmMobileMenuToggle');
+        const crmMobileNavOverlay = document.getElementById('crmMobileNavOverlay');
+        const closeCrmMobileNav = document.getElementById('closeCrmMobileNav');
+        const crmMobileNavLinks = document.querySelectorAll('.mobile-nav-link[data-section]');
+        const crmMobileThemeToggle = document.getElementById('crmMobileThemeToggle');
+
+        // Toggle mobile menu
+        if (crmMobileMenuToggle) {
+            crmMobileMenuToggle.addEventListener('click', () => {
+                this.toggleCRMMobileMenu();
+            });
+        }
+
+        // Close mobile menu
+        if (closeCrmMobileNav) {
+            closeCrmMobileNav.addEventListener('click', () => {
+                this.closeCRMMobileMenu();
+            });
+        }
+
+        // Close mobile menu when clicking outside
+        if (crmMobileNavOverlay) {
+            crmMobileNavOverlay.addEventListener('click', (e) => {
+                if (e.target === crmMobileNavOverlay) {
+                    this.closeCRMMobileMenu();
+                }
+            });
+        }
+
+        // Handle mobile navigation links
+        crmMobileNavLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                const section = link.getAttribute('data-section');
+                if (section) {
+                    e.preventDefault();
+                    this.navigateToSection(section);
+                    this.closeCRMMobileMenu();
+                }
+            });
+        });
+
+        // Mobile theme toggle
+        if (crmMobileThemeToggle) {
+            crmMobileThemeToggle.addEventListener('click', () => {
+                this.toggleTheme();
+                this.closeCRMMobileMenu();
+            });
+        }
+
+        // Handle mobile navigation link active states
+        this.updateCRMMobileNavActiveStates();
+    }
+
+    /**
+     * Toggle CRM mobile menu open/close
+     */
+    toggleCRMMobileMenu() {
+        const crmMobileMenuToggle = document.getElementById('crmMobileMenuToggle');
+        const crmMobileNavOverlay = document.getElementById('crmMobileNavOverlay');
+        
+        if (crmMobileNavOverlay && crmMobileMenuToggle) {
+            const isOpen = crmMobileNavOverlay.classList.contains('active');
+            
+            if (isOpen) {
+                this.closeCRMMobileMenu();
+            } else {
+                this.openCRMMobileMenu();
+            }
+        }
+    }
+
+    /**
+     * Open CRM mobile menu
+     */
+    openCRMMobileMenu() {
+        const crmMobileMenuToggle = document.getElementById('crmMobileMenuToggle');
+        const crmMobileNavOverlay = document.getElementById('crmMobileNavOverlay');
+        
+        if (crmMobileNavOverlay && crmMobileMenuToggle) {
+            crmMobileNavOverlay.classList.add('active');
+            crmMobileMenuToggle.classList.add('active');
+            document.body.style.overflow = 'hidden'; // Prevent background scrolling
+        }
+    }
+
+    /**
+     * Close CRM mobile menu
+     */
+    closeCRMMobileMenu() {
+        const crmMobileMenuToggle = document.getElementById('crmMobileMenuToggle');
+        const crmMobileNavOverlay = document.getElementById('crmMobileNavOverlay');
+        
+        if (crmMobileNavOverlay && crmMobileMenuToggle) {
+            crmMobileNavOverlay.classList.remove('active');
+            crmMobileMenuToggle.classList.remove('active');
+            document.body.style.overflow = ''; // Restore scrolling
+        }
+    }
+
+    /**
+     * Update CRM mobile navigation active states
+     */
+    updateCRMMobileNavActiveStates() {
+        const crmMobileNavLinks = document.querySelectorAll('.mobile-nav-link[data-section]');
+        const currentSection = this.currentSection || 'projects';
+        
+        crmMobileNavLinks.forEach(link => {
+            const section = link.getAttribute('data-section');
+            if (section === currentSection) {
+                link.classList.add('active');
+            } else {
+                link.classList.remove('active');
+            }
+        });
+    }
+
+    /**
+     * Navigate to CRM section
+     */
+    navigateToSection(section) {
+        this.currentSection = section;
+        this.updateCRMMobileNavActiveStates();
+        
+        // Update main navigation active states
+        const mainNavLinks = document.querySelectorAll('.crm-nav .nav-link');
+        mainNavLinks.forEach(link => {
+            link.classList.remove('active');
+            if (link.getAttribute('data-section') === section) {
+                link.classList.add('active');
+            }
+        });
+        
+        // Show/hide sections based on navigation
+        this.showSection(section);
+    }
+
+    /**
+     * Show CRM section
+     */
+    showSection(section) {
+        // Hide all sections
+        const sections = ['projects', 'tasks', 'timer'];
+        sections.forEach(s => {
+            const sectionElement = document.getElementById(`${s}Section`);
+            if (sectionElement) {
+                sectionElement.style.display = 'none';
+            }
+        });
+        
+        // Show selected section
+        const selectedSection = document.getElementById(`${section}Section`);
+        if (selectedSection) {
+            selectedSection.style.display = 'block';
+        }
+        
+        // Update current section
+        this.currentSection = section;
+>>>>>>> 8b98c1675b59d642af977e843f62b6ffe7b80dca
     }
 }
 
