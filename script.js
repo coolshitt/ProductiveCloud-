@@ -360,8 +360,8 @@ class ProductiveCloud {
             themeToggle.addEventListener('click', () => this.toggleTheme());
         }
 
-        // Initialize QA Tester
-        this.initQATester();
+        // Mobile navigation functionality
+        this.initMobileNavigation();
 
         // Navigation
         const navLinks = document.querySelectorAll('.nav-link');
@@ -2327,208 +2327,185 @@ class ProductiveCloud {
                date.getFullYear() === today.getFullYear();
     }
 
-    /**
-     * Initialize QA Tester
-     */
-    initQATester() {
-        this.testResults = {
-            total: 0,
-            passed: 0,
-            failed: 0
-        };
-        this.tests = this.setupTests();
-        this.updateTesterDisplay();
-    }
-
-    /**
-     * Setup test cases
-     */
-    setupTests() {
-        return [
-            // Core System Tests
-            { name: 'Script Loading', test: () => this.testScriptLoading(), section: 'core' },
-            { name: 'Global Instance', test: () => this.testGlobalInstance(), section: 'core' },
-            { name: 'Initialization', test: () => this.testInitialization(), section: 'core' },
-
-            // Calendar System Tests
-            { name: 'Calendar Element', test: () => this.testCalendarElement(), section: 'calendar' },
-            { name: 'Calendar Rendering', test: () => this.testCalendarRendering(), section: 'calendar' },
-
-            // Habit Management Tests
-            { name: 'Habit Creation', test: () => this.testHabitCreation(), section: 'habit' },
-            { name: 'Data Persistence', test: () => this.testDataPersistence(), section: 'habit' },
-
-            // Navigation Tests
-            { name: 'View Switching', test: () => this.testViewSwitching(), section: 'nav' },
-            { name: 'CRM Integration', test: () => this.testCRMIntegration(), section: 'nav' }
-        ];
-    }
-
-    /**
-     * Run all tests
-     */
-    async runAllTests() {
-        this.testResults = { total: this.tests.length, passed: 0, failed: 0 };
-        this.updateTesterDisplay();
-        this.renderTestResults();
-
-        for (let i = 0; i < this.tests.length; i++) {
-            const test = this.tests[i];
-            try {
-                const result = await test.test();
-                this.updateTestResult(test.name, result);
-                this.updateTestResultInUI(test.name, result);
-                this.updateTesterDisplay();
-                await this.delay(100);
-            } catch (error) {
-                this.updateTestResult(test.name, { passed: false, message: error.message });
-                this.updateTestResultInUI(test.name, { passed: false, message: error.message });
-                this.updateTesterDisplay();
-            }
-        }
-    }
-
-    // Core System Tests
-    testScriptLoading() {
-        return {
-            passed: true,
-            message: 'Script loaded successfully'
-        };
-    }
-
-    testGlobalInstance() {
-        return {
-            passed: typeof this !== 'undefined',
-            message: 'ProductiveCloud instance exists'
-        };
-    }
 
 
 
-    testInitialization() {
-        return {
-            passed: true,
-            message: 'ProductiveCloud initialized successfully'
-        };
-    }
 
-    // Calendar System Tests
-    testCalendarElement() {
-        const calendar = document.getElementById('calendar');
-        return {
-            passed: !!calendar,
-            message: calendar ? 'Calendar element found' : 'Calendar element not found'
-        };
-    }
 
-    testCalendarRendering() {
-        return {
-            passed: typeof this.renderCalendar === 'function',
-            message: 'Calendar rendering method available'
-        };
-    }
+
+
+
+
+
+
 
 
 
     // Habit Management Tests
-    testHabitCreation() {
-        return {
-            passed: typeof this.showHabitModal === 'function',
-            message: 'Habit creation method available'
-        };
-    }
 
 
 
-    testDataPersistence() {
-        return {
-            passed: typeof localStorage !== 'undefined',
-            message: 'LocalStorage available for data persistence'
-        };
-    }
+
+
 
     // Navigation Tests
-    testViewSwitching() {
-        return {
-            passed: typeof this.showView === 'function',
-            message: 'View switching method available'
-        };
-    }
 
 
 
-    testCRMIntegration() {
-        const crmLink = document.querySelector('a[href*="crm"]');
-        return {
-            passed: !!crmLink,
-            message: crmLink ? 'CRM integration link found' : 'CRM integration link not found'
-        };
-    }
+
+
 
     // UI/UX Tests
 
+    // Mobile Navigation Methods
+    /**
+     * Initialize mobile navigation
+     */
+    initMobileNavigation() {
+        const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+        const mobileNavOverlay = document.getElementById('mobileNavOverlay');
+        const closeMobileNav = document.getElementById('closeMobileNav');
+        const mobileNavLinks = document.querySelectorAll('.mobile-nav-link[data-view]');
+        const mobileGifControlsToggle = document.getElementById('mobileGifControlsToggle');
+        const mobileThemeToggle = document.getElementById('mobileThemeToggle');
 
-    // Utility Methods
-    updateTestResult(testName, result) {
-        if (result.passed) {
-            this.testResults.passed++;
-        } else {
-            this.testResults.failed++;
+        // Toggle mobile menu
+        if (mobileMenuToggle) {
+            mobileMenuToggle.addEventListener('click', () => {
+                this.toggleMobileMenu();
+            });
+        }
+
+        // Close mobile menu
+        if (closeMobileNav) {
+            closeMobileNav.addEventListener('click', () => {
+                this.closeMobileMenu();
+            });
+        }
+
+        // Close mobile menu when clicking outside
+        if (mobileNavOverlay) {
+            mobileNavOverlay.addEventListener('click', (e) => {
+                if (e.target === mobileNavOverlay) {
+                    this.closeMobileMenu();
+                }
+            });
+        }
+
+        // Handle mobile navigation links
+        mobileNavLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                const view = link.getAttribute('data-view');
+                if (view) {
+                    e.preventDefault();
+                    this.navigateToView(view);
+                    this.closeMobileMenu();
+                }
+            });
+        });
+
+        // Mobile GIF controls toggle
+        if (mobileGifControlsToggle) {
+            mobileGifControlsToggle.addEventListener('click', () => {
+                this.toggleGifControls();
+                this.closeMobileMenu();
+            });
+        }
+
+        // Mobile theme toggle
+        if (mobileThemeToggle) {
+            mobileThemeToggle.addEventListener('click', () => {
+                this.toggleTheme();
+                this.closeMobileMenu();
+            });
+        }
+
+        // Handle mobile navigation link active states
+        this.updateMobileNavActiveStates();
+    }
+
+    /**
+     * Toggle mobile menu open/close
+     */
+    toggleMobileMenu() {
+        const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+        const mobileNavOverlay = document.getElementById('mobileNavOverlay');
+        
+        if (mobileNavOverlay && mobileMenuToggle) {
+            const isOpen = mobileNavOverlay.classList.contains('active');
+            
+            if (isOpen) {
+                this.closeMobileMenu();
+            } else {
+                this.openMobileMenu();
+            }
         }
     }
 
-    updateTesterDisplay() {
-        const totalTests = document.getElementById('totalTests');
-        const passedTests = document.getElementById('passedTests');
-        const failedTests = document.getElementById('failedTests');
-        const successRate = document.getElementById('successRate');
-
-        if (totalTests) totalTests.textContent = this.testResults.total;
-        if (passedTests) passedTests.textContent = this.testResults.passed;
-        if (failedTests) failedTests.textContent = this.testResults.failed;
+    /**
+     * Open mobile menu
+     */
+    openMobileMenu() {
+        const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+        const mobileNavOverlay = document.getElementById('mobileNavOverlay');
         
-        if (successRate) {
-            const rate = Math.round((this.testResults.passed / this.testResults.total) * 100);
-            successRate.textContent = `${rate}%`;
+        if (mobileNavOverlay && mobileMenuToggle) {
+            mobileNavOverlay.classList.add('active');
+            mobileMenuToggle.classList.add('active');
+            document.body.style.overflow = 'hidden'; // Prevent background scrolling
         }
     }
 
-    renderTestResults() {
-        const testResults = document.getElementById('testResults');
-        if (!testResults) return;
-
-        testResults.innerHTML = '';
+    /**
+     * Close mobile menu
+     */
+    closeMobileMenu() {
+        const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+        const mobileNavOverlay = document.getElementById('mobileNavOverlay');
         
-        this.tests.forEach(test => {
-            const testItem = document.createElement('div');
-            testItem.className = 'test-item';
-            
-            const testName = document.createElement('span');
-            testName.className = 'test-name';
-            testName.textContent = test.name;
-            
-            const testResult = document.createElement('span');
-            testResult.className = 'test-result result-pending';
-            testResult.textContent = 'Pending';
-            testResult.id = `test-${test.name.replace(/\s+/g, '-').toLowerCase()}`;
-            
-            testItem.appendChild(testName);
-            testItem.appendChild(testResult);
-            testResults.appendChild(testItem);
+        if (mobileNavOverlay && mobileMenuToggle) {
+            mobileNavOverlay.classList.remove('active');
+            mobileMenuToggle.classList.remove('active');
+            document.body.style.overflow = ''; // Restore scrolling
+        }
+    }
+
+    /**
+     * Update mobile navigation active states
+     */
+    updateMobileNavActiveStates() {
+        const mobileNavLinks = document.querySelectorAll('.mobile-nav-link[data-view]');
+        const currentView = this.currentView || 'calendar';
+        
+        mobileNavLinks.forEach(link => {
+            const view = link.getAttribute('data-view');
+            if (view === currentView) {
+                link.classList.add('active');
+            } else {
+                link.classList.remove('active');
+            }
         });
     }
 
-    updateTestResultInUI(testName, result) {
-        const testElement = document.getElementById(`test-${testName.replace(/\s+/g, '-').toLowerCase()}`);
-        if (testElement) {
-            testElement.textContent = result.passed ? 'Pass' : 'Fail';
-            testElement.className = `test-result ${result.passed ? 'result-pass' : 'result-fail'}`;
-        }
+    /**
+     * Handle mobile navigation view changes
+     */
+    handleMobileNavigation(view) {
+        this.navigateToView(view);
+        this.updateMobileNavActiveStates();
+        this.closeMobileMenu();
     }
 
-    delay(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
-    }
+    // Utility Methods
+
+
+
+
+
+
+
+
+
 }
 
 // Initialize app when page loads
@@ -2551,33 +2528,7 @@ function handleCredentialResponse(response) {
     }
 }
 
-// Global functions for QA Tester
-function toggleTester() {
-    const testerPanel = document.getElementById('testerPanel');
-    if (testerPanel) {
-        testerPanel.classList.toggle('active');
-        if (testerPanel.classList.contains('active')) {
-            // Initialize tester when opened
-            if (window.productiveCloud) {
-                window.productiveCloud.initQATester();
-            }
-        }
-    }
-}
 
-function runAllTests() {
-    if (window.productiveCloud) {
-        window.productiveCloud.runAllTests();
-    }
-}
-
-function clearTestResults() {
-    if (window.productiveCloud) {
-        window.productiveCloud.testResults = { total: 0, passed: 0, failed: 0 };
-        window.productiveCloud.updateTesterDisplay();
-        window.productiveCloud.renderTestResults();
-    }
-}
 
 // Global functions for Manual Save/Load
 
@@ -3175,3 +3126,5 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('🎬 Global GIF system initialized');
     }, 1000);
 });
+
+
