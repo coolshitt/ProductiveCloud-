@@ -488,6 +488,18 @@ class ProductiveCloud {
             logoutBtn.addEventListener('click', () => this.logout());
         }
 
+        // Manual save/load buttons
+        const importBtn = document.getElementById('importDataBtn');
+        const clearDataBtn = document.getElementById('clearDataBtn');
+        
+        if (importBtn) {
+            importBtn.addEventListener('click', () => this.showImportDialog());
+        }
+        
+        if (clearDataBtn) {
+            clearDataBtn.addEventListener('click', () => this.clearAllData());
+        }
+
         // Close modals on outside click
         document.addEventListener('click', (e) => {
             if (e.target.classList.contains('modal')) {
@@ -1554,6 +1566,610 @@ class ProductiveCloud {
     }
 
     /**
+     * Export all data to JSON file (Manual Save)
+     */
+
+
+
+
+    /**
+     * UNIFIED EXPORT SYSTEM - Future-proof for all modules
+     * This is the main export function that will be used for Google sync
+     */
+    unifiedExport() {
+        try {
+            console.log('🚀 Starting unified export for Productive Cloud...');
+            
+            // Initialize modules object
+            const modules = {};
+            let totalModules = 0;
+            
+            // 1. HABITS MODULE (Always available)
+            modules.habits = {
+                module: 'Habit Tracker',
+                version: '1.0',
+                data: {
+                    habits: this.habits || [],
+                    progress: this.habitProgress || {},
+                    user: this.user || null,
+                    theme: this.isDarkMode ? 'dark' : 'light',
+                    settings: {
+                        firstTime: localStorage.getItem('productiveCloudFirstTime'),
+                        customBackgroundGifs: localStorage.getItem('customBackgroundGifs'),
+                        gifBackgroundSettings: localStorage.getItem('gifBackgroundSettings')
+                    }
+                }
+            };
+            totalModules++;
+
+            // 2. CRM MODULE (Detect if available)
+            if (window.projectCRM && typeof window.projectCRM.getCRMDataForExport === 'function') {
+                const crmData = window.projectCRM.getCRMDataForExport();
+                modules.crm = {
+                    module: 'Project CRM',
+                    version: '1.0',
+                    data: crmData
+                };
+                totalModules++;
+                console.log('✅ CRM module detected and included');
+            } else {
+                // Try to get CRM data from localStorage if module isn't loaded
+                const crmProjects = localStorage.getItem('projectCRM_projects');
+                const crmTheme = localStorage.getItem('projectCRM_theme');
+                const crmTimerState = localStorage.getItem('crm_timer_state');
+                
+                if (crmProjects || crmTheme || crmTimerState) {
+                    try {
+                        const crmData = {
+                            projects: crmProjects ? JSON.parse(crmProjects) : [],
+                            theme: crmTheme || 'light',
+                            timer: crmTimerState ? JSON.parse(crmTimerState) : { totalTime: 0, savedSessions: [] }
+                        };
+                        
+                        modules.crm = {
+                            module: 'Project CRM',
+                            version: '1.0',
+                            data: crmData
+                        };
+                        totalModules++;
+                        console.log('✅ CRM data found in localStorage and included');
+                    } catch (parseError) {
+                        console.warn('⚠️ Error parsing CRM data from localStorage:', parseError);
+                        modules.crm = {
+                            module: 'Project CRM',
+                            version: '1.0',
+                            data: null,
+                            note: 'Error parsing stored CRM data'
+                        };
+                    }
+                } else {
+                    modules.crm = {
+                        module: 'Project CRM',
+                        version: '1.0',
+                        data: null,
+                        note: 'No CRM data available'
+                    };
+                    console.log('ℹ️ No CRM data found');
+                }
+            }
+
+            // 3. FUTURE MODULES - Easy to add here
+            // Example structure for future modules:
+            /*
+            if (window.futureModule && typeof window.futureModule.getDataForExport === 'function') {
+                modules.futureModule = {
+                    module: 'Future Module Name',
+                    version: '1.0',
+                    data: window.futureModule.getDataForExport()
+                };
+                totalModules++;
+            }
+            */
+
+            // FUTURE MODULE TEMPLATE - Copy this structure for new modules:
+            /*
+            // Example: Notes Module
+            if (window.notesModule && typeof window.notesModule.getDataForExport === 'function') {
+                modules.notes = {
+                    module: 'Notes & Journal',
+                    version: '1.0',
+                    data: window.notesModule.getDataForExport()
+                };
+                totalModules++;
+            }
+
+            // Example: Finance Module
+            if (window.financeModule && typeof window.financeModule.getDataForExport === 'function') {
+                modules.finance = {
+                    module: 'Finance Tracker',
+                    version: '1.0',
+                    data: window.financeModule.getDataForExport()
+                };
+                totalModules++;
+            }
+
+            // Example: Goals Module
+            if (window.goalsModule && typeof window.goalsModule.getDataForExport === 'function') {
+                modules.goals = {
+                    module: 'Goal Management',
+                    version: '1.0',
+                    data: window.goalsModule.getDataForExport()
+                };
+                totalModules++;
+            }
+            */
+
+            // 4. SYSTEM DATA
+            const systemData = {
+                appVersion: '2.0',
+                exportTimestamp: new Date().toISOString(),
+                userAgent: navigator.userAgent,
+                platform: navigator.platform,
+                language: navigator.language,
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+            };
+
+            // 5. COMPLETE EXPORT STRUCTURE
+            const exportData = {
+                exportInfo: {
+                    app: 'Productive Cloud',
+                    version: '2.0',
+                    exportDate: new Date().toISOString(),
+                    description: 'Unified Productive Cloud Export - All Modules',
+                    totalModules: totalModules,
+                    futureSync: 'Google Sync Ready',
+                    dataStructure: 'Modular and extensible'
+                },
+                modules: modules,
+                system: systemData,
+                localStorage: {
+                    note: 'Complete localStorage backup for restoration and sync',
+                    data: this.getAllLocalStorageData()
+                }
+            };
+
+            // 6. EXPORT TO FILE
+            const dataStr = JSON.stringify(exportData, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(dataBlob);
+            link.download = `productive-cloud-unified-export-${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            
+            URL.revokeObjectURL(link.href);
+            
+            // 7. SUCCESS MESSAGE
+            this.showToast('🚀 Unified export completed successfully!', 'success');
+            console.log('🚀 Unified export completed:', exportData);
+            
+            // 8. RETURN DATA FOR FUTURE GOOGLE SYNC
+            return exportData;
+            
+        } catch (error) {
+            console.error('❌ Unified export failed:', error);
+            this.showError('Failed to complete unified export. Please try again.');
+            return null;
+        }
+    }
+
+    /**
+     * Get all localStorage data for comprehensive backup
+     */
+    getAllLocalStorageData() {
+        const allData = {};
+        try {
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key) {
+                    try {
+                        const value = localStorage.getItem(key);
+                        if (value) {
+                            // Try to parse JSON, fallback to string
+                            try {
+                                allData[key] = JSON.parse(value);
+                            } catch {
+                                allData[key] = value;
+                            }
+                        }
+                    } catch (e) {
+                        console.warn(`Could not read localStorage key: ${key}`);
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Error reading localStorage:', error);
+        }
+        return allData;
+    }
+
+    /**
+     * Synchronize CRM data (foundation for Google Sync)
+     */
+    syncCRMData() {
+        try {
+            console.log('🔄 Starting CRM data synchronization...');
+            
+            if (window.projectCRM) {
+                // Force refresh CRM data from localStorage
+                window.projectCRM.forceRefreshFromStorage();
+                console.log('✅ CRM data synchronized');
+                return true;
+            } else {
+                console.log('⚠️ CRM module not available for sync');
+                return false;
+            }
+        } catch (error) {
+            console.error('❌ CRM sync failed:', error);
+            return false;
+        }
+    }
+
+    /**
+     * Get CRM data status for monitoring
+     */
+    getCRMDataStatus() {
+        try {
+            const projects = localStorage.getItem('projectCRM_projects');
+            const theme = localStorage.getItem('projectCRM_theme');
+            const timerState = localStorage.getItem('crm_timer_state');
+            
+            return {
+                projects: projects ? JSON.parse(projects) : [],
+                theme: theme,
+                timerState: timerState ? JSON.parse(timerState) : null,
+                moduleLoaded: !!window.projectCRM,
+                projectsCount: projects ? JSON.parse(projects).length : 0
+            };
+        } catch (error) {
+            console.error('Error getting CRM status:', error);
+            return { error: error.message };
+        }
+    }
+
+    /**
+     * Import data from JSON file (Manual Load)
+     */
+    importDataFromFile(file) {
+        try {
+            const reader = new FileReader();
+            
+            reader.onload = (e) => {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    
+                    // Validate imported data
+                    if (!this.validateImportedData(importedData)) {
+                        this.showError('Invalid backup file. Please use a valid Productive Cloud backup.');
+                        return;
+                    }
+                    
+                    // Handle different export formats
+                    if (importedData.exportInfo && importedData.exportInfo.version === '2.0' && importedData.modules) {
+                        // New unified export format
+                        this.importUnifiedData(importedData);
+                    } else {
+                        // Legacy format (version 1.0)
+                        this.importLegacyData(importedData);
+                    }
+                    
+                } catch (parseError) {
+                    console.error('Failed to parse imported file:', parseError);
+                    this.showError('Invalid file format. Please use a valid JSON backup file.');
+                }
+            };
+            
+            reader.onerror = () => {
+                this.showError('Failed to read file. Please try again.');
+            };
+            
+            reader.readAsText(file);
+            
+        } catch (error) {
+            console.error('Failed to import data:', error);
+            this.showError('Failed to import data. Please try again.');
+        }
+    }
+
+    /**
+     * Validate imported data structure
+     */
+    validateImportedData(data) {
+        // Check if it's a valid Productive Cloud backup
+        if (!data || typeof data !== 'object') return false;
+        
+        // Check for new unified format (version 2.0)
+        if (data.exportInfo && data.exportInfo.version === '2.0' && data.modules) {
+            // Validate unified format structure
+            if (!data.exportInfo.app || data.exportInfo.app !== 'Productive Cloud') {
+                return false;
+            }
+            if (!data.modules || !data.modules.habits) {
+                return false;
+            }
+            return true;
+        }
+        
+        // Check for legacy format (version 1.0 or no version)
+        if (Array.isArray(data.habits) && typeof data.progress === 'object') {
+            return true;
+        }
+        
+        return false;
+    }
+
+    /**
+     * Import data from unified export format (version 2.0)
+     */
+    importUnifiedData(data) {
+        try {
+            console.log('🔄 Importing unified export data...', data);
+            
+            // Import habits module data
+            if (data.modules.habits && data.modules.habits.data) {
+                const habitsData = data.modules.habits.data;
+                this.habits = habitsData.habits || [];
+                this.habitProgress = habitsData.progress || {};
+                this.user = habitsData.user || null;
+                
+                // Apply theme if available
+                if (habitsData.theme) {
+                    this.isDarkMode = habitsData.theme === 'dark';
+                    this.applyTheme();
+                }
+                
+                // Import settings
+                if (habitsData.settings) {
+                    if (habitsData.settings.firstTime) {
+                        localStorage.setItem('productiveCloudFirstTime', habitsData.settings.firstTime);
+                    }
+                    if (habitsData.settings.customBackgroundGifs) {
+                        localStorage.setItem('customBackgroundGifs', habitsData.settings.customBackgroundGifs);
+                    }
+                    if (habitsData.settings.gifBackgroundSettings) {
+                        localStorage.setItem('gifBackgroundSettings', habitsData.settings.gifBackgroundSettings);
+                    }
+                }
+            }
+            
+            // Import CRM module data if available
+            if (data.modules.crm && data.modules.crm.data) {
+                try {
+                    const crmData = data.modules.crm.data;
+                    console.log('🔍 CRM Data being imported:', crmData);
+                    console.log('🔍 CRM Data type check:', typeof crmData.projects, Array.isArray(crmData.projects));
+                    
+                    // CRITICAL: Store ALL CRM data in localStorage first
+                    if (crmData.projects && Array.isArray(crmData.projects)) {
+                        console.log('📦 Storing CRM projects in localStorage:', crmData.projects);
+                        console.log('📦 Projects length:', crmData.projects.length);
+                        console.log('📦 First project sample:', crmData.projects[0]);
+                        
+                        // Ensure each project has required fields and initialize missing ones
+                        const validatedProjects = crmData.projects.map(project => ({
+                            id: project.id || this.generateId(),
+                            name: project.name || 'Unnamed Project',
+                            status: project.status || 'active',
+                            progress: project.progress || 0,
+                            cost: project.cost || 0,
+                            notes: project.notes || '',
+                            tasks: project.tasks || [],
+                            createdAt: project.createdAt || new Date().toISOString(),
+                            updatedAt: project.updatedAt || new Date().toISOString()
+                        }));
+                        
+                        console.log('✅ Validated projects:', validatedProjects);
+                        
+                        localStorage.setItem('projectCRM_projects', JSON.stringify(validatedProjects));
+                        console.log('✅ CRM projects stored in localStorage');
+                        
+                        // Verify storage
+                        const stored = localStorage.getItem('projectCRM_projects');
+                        console.log('🔍 Verification - stored projects:', stored);
+                        
+                        // Parse and verify the stored data
+                        try {
+                            const parsedStored = JSON.parse(stored);
+                            console.log('🔍 Parsed stored projects:', parsedStored);
+                            console.log('🔍 Stored projects length:', parsedStored.length);
+                        } catch (parseError) {
+                            console.error('❌ Error parsing stored projects:', parseError);
+                        }
+                    } else {
+                        console.log('⚠️ No valid projects array found in CRM data');
+                    }
+                    
+                    if (crmData.theme) {
+                        console.log('🎨 Storing CRM theme:', crmData.theme);
+                        localStorage.setItem('projectCRM_theme', crmData.theme);
+                    }
+                    
+                    if (crmData.timer) {
+                        const timerState = {
+                            totalTime: crmData.timer.totalTime || 0,
+                            savedSessions: crmData.timer.savedSessions || []
+                        };
+                        console.log('⏱️ Storing CRM timer data:', timerState);
+                        localStorage.setItem('crm_timer_state', JSON.stringify(timerState));
+                        localStorage.setItem('crm_saved_sessions', JSON.stringify(crmData.timer.savedSessions || []));
+                    }
+                    
+                    // If CRM module is loaded, force a complete refresh
+                    if (window.projectCRM) {
+                        console.log('🔄 CRM module detected, performing complete refresh...');
+                        console.log('📋 CRM module projects before refresh:', window.projectCRM.projects);
+                        
+                        // Force reload projects from localStorage
+                        window.projectCRM.loadProjects();
+                        console.log('📋 Projects loaded from localStorage:', window.projectCRM.projects);
+                        console.log('📋 Projects array type:', Array.isArray(window.projectCRM.projects));
+                        console.log('📋 Projects length:', window.projectCRM.projects ? window.projectCRM.projects.length : 'undefined');
+                        
+                        // Force reload theme
+                        if (crmData.theme) {
+                            window.projectCRM.currentTheme = crmData.theme;
+                            window.projectCRM.loadTheme();
+                        }
+                        
+                        // Force reload timer data
+                        if (crmData.timer) {
+                            window.projectCRM.timer.totalTime = crmData.timer.totalTime || 0;
+                            window.projectCRM.savedSessions = crmData.timer.savedSessions || [];
+                        }
+                        
+                        // CRITICAL: Force complete interface refresh
+                        console.log('🖼️ Performing complete CRM interface refresh...');
+                        window.projectCRM.renderProjects();
+                        window.projectCRM.updateStats();
+                        window.projectCRM.initTimer();
+                        
+                        // Additional safety: force a second render after a short delay
+                        setTimeout(() => {
+                            console.log('🔄 Performing delayed CRM refresh...');
+                            window.projectCRM.renderProjects();
+                            window.projectCRM.updateStats();
+                        }, 100);
+                        
+                        console.log('✅ CRM data imported successfully and interface completely refreshed');
+                        console.log('📋 Final CRM module projects state:', window.projectCRM.projects);
+                    } else {
+                        console.log('✅ CRM data stored in localStorage - will be loaded when CRM page is accessed');
+                        
+                        // Set a flag to indicate data was imported
+                        localStorage.setItem('crm_data_imported', 'true');
+                        localStorage.setItem('crm_import_timestamp', new Date().toISOString());
+                    }
+                    
+                } catch (crmError) {
+                    console.error('❌ Failed to import CRM data:', crmError);
+                }
+            } else {
+                console.log('❌ No CRM data found in import file or CRM data is null');
+                if (data.modules.crm) {
+                    console.log('🔍 CRM module structure:', data.modules.crm);
+                }
+            }
+            
+            // Import localStorage data if available
+            if (data.localStorage && data.localStorage.data) {
+                try {
+                    Object.entries(data.localStorage.data).forEach(([key, value]) => {
+                        if (value !== null && value !== undefined) {
+                            localStorage.setItem(key, value);
+                        }
+                    });
+                    console.log('✅ localStorage data imported successfully');
+                } catch (localStorageError) {
+                    console.warn('⚠️ Failed to import localStorage data:', localStorageError);
+                }
+            }
+            
+            // Save to localStorage
+            this.saveUserData();
+            
+            // Refresh the UI
+            this.renderApplication();
+            this.updateProgress();
+            
+            this.showToast('✅ Unified backup imported successfully!', 'success');
+            console.log('🚀 Unified data import completed:', data);
+            
+        } catch (error) {
+            console.error('❌ Failed to import unified data:', error);
+            this.showError('Failed to import unified backup. Please try again.');
+        }
+    }
+
+    /**
+     * Import data from legacy format (version 1.0 or no version)
+     */
+    importLegacyData(data) {
+        try {
+            console.log('🔄 Importing legacy data...', data);
+            
+            // Import the data
+            this.habits = data.habits || [];
+            this.habitProgress = data.progress || {};
+            this.user = data.user || null;
+            
+            // Apply theme if available
+            if (data.theme) {
+                this.isDarkMode = data.theme === 'dark';
+                this.applyTheme();
+            }
+            
+            // Save to localStorage
+            this.saveUserData();
+            
+            // Refresh the UI
+            this.renderApplication();
+            this.updateProgress();
+            
+            this.showToast('✅ Legacy backup imported successfully!', 'success');
+            console.log('Data imported:', data);
+            
+        } catch (error) {
+            console.error('❌ Failed to import legacy data:', error);
+            this.showError('Failed to import legacy backup. Please try again.');
+        }
+    }
+
+    /**
+     * Clear all data and reset to defaults
+     */
+    clearAllData() {
+        const confirmed = confirm('⚠️ WARNING ⚠️\n\nThis will delete ALL your habits, progress, and user data.\n\nThis action cannot be undone!\n\nAre you sure you want to continue?');
+        
+        if (confirmed) {
+            try {
+                // Clear all data
+                this.habits = [];
+                this.habitProgress = {};
+                this.user = null;
+                
+                // Clear localStorage
+                localStorage.clear();
+                
+                // Reset theme
+                this.isDarkMode = false;
+                this.applyTheme();
+                
+                // Refresh UI
+                this.renderApplication();
+                this.updateProgress();
+                
+                this.showToast('🗑️ All data cleared successfully!', 'success');
+                console.log('All data cleared');
+                
+            } catch (error) {
+                console.error('Failed to clear data:', error);
+                this.showError('Failed to clear data. Please try again.');
+            }
+        }
+    }
+
+    /**
+     * Show import dialog
+     */
+    showImportDialog() {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.json';
+        input.style.display = 'none';
+        
+        input.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                this.importDataFromFile(file);
+            }
+        });
+        
+        document.body.appendChild(input);
+        input.click();
+        document.body.removeChild(input);
+    }
+
+    /**
      * Update progress
      */
     updateProgress() {
@@ -1960,6 +2576,76 @@ function clearTestResults() {
         window.productiveCloud.testResults = { total: 0, passed: 0, failed: 0 };
         window.productiveCloud.updateTesterDisplay();
         window.productiveCloud.renderTestResults();
+    }
+}
+
+// Global functions for Manual Save/Load
+
+// Open Google Drive sync panel
+function openGoogleSyncPanel() {
+    window.open('google-sync-panel.html', '_blank', 'width=800,height=600,scrollbars=yes,resizable=yes');
+}
+
+function exportData() {
+    if (window.productiveCloud) {
+        // Use the new unified export system
+        window.productiveCloud.unifiedExport();
+    } else {
+        alert('Productive Cloud not loaded yet. Please wait for the page to load completely.');
+    }
+}
+
+
+
+function importData() {
+    if (window.productiveCloud) {
+        window.productiveCloud.showImportDialog();
+    } else {
+        alert('Productive Cloud not loaded yet. Please wait for the page to load completely.');
+    }
+}
+
+function clearAllData() {
+    if (window.productiveCloud) {
+        window.productiveCloud.clearAllData();
+    } else {
+        alert('Productive Cloud not loaded yet. Please wait for the page to load completely.');
+    }
+}
+
+/**
+ * Force refresh CRM data from localStorage (useful for sync operations)
+ */
+function forceRefreshCRM() {
+    if (window.projectCRM) {
+        window.projectCRM.forceRefreshFromStorage();
+        console.log('✅ CRM force refresh completed');
+    } else {
+        console.log('⚠️ CRM module not loaded yet');
+    }
+}
+
+/**
+ * Check CRM data status (useful for debugging)
+ */
+function checkCRMDataStatus() {
+    const projects = localStorage.getItem('projectCRM_projects');
+    const theme = localStorage.getItem('projectCRM_theme');
+    const timerState = localStorage.getItem('crm_timer_state');
+    
+    console.log('🔍 CRM Data Status:');
+    console.log('Projects:', projects ? JSON.parse(projects) : 'None');
+    console.log('Theme:', theme);
+    console.log('Timer State:', timerState ? JSON.parse(timerState) : 'None');
+    
+    if (window.projectCRM) {
+        console.log('CRM Module Status:', {
+            projects: window.projectCRM.projects,
+            theme: window.projectCRM.currentTheme,
+            timer: window.projectCRM.timer
+        });
+    } else {
+        console.log('CRM Module: Not loaded');
     }
 }
 
@@ -2489,12 +3175,3 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('🎬 Global GIF system initialized');
     }, 1000);
 });
-
-// Export your data to a file
-exportData()
-
-// Import data from a backup file
-importData()
-
-// Clear all data (WARNING: irreversible!)
-clearAllData()
