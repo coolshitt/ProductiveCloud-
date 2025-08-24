@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Productive Cloud - GitHub Version</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .github-notice {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .github-notice strong {
+            color: #d63031;
+        }
+    </style>
+</head>
+<body>
+    <!-- GitHub Notice -->
+    <div class="github-notice">
+        <strong>🌐 GitHub Mode Active</strong><br>
+        Running on GitHub Pages - Local storage only. All CRM features work perfectly!
+    </div>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo-section">
+                <h1 class="logo">Productive Cloud</h1>
+                <p class="tagline">Organize • Track • Achieve</p>
+            </div>
+            
+            <nav class="nav-menu">
+                <button class="nav-btn active" data-view="calendarView">📅 Calendar</button>
+                <button class="nav-btn" data-view="weeklyView">📊 Weekly</button>
+                <button class="nav-btn" data-view="crmView">📋 CRM</button>
+                <button class="nav-btn" data-view="habitsView">🎯 Habits</button>
+            </nav>
+            
+            <div class="header-actions">
+                <div class="theme-toggle">
+                    <button id="themeToggle" class="theme-btn" aria-label="Toggle theme">
+                        <span id="themeIcon">🌙</span>
+                    </button>
+                </div>
+                
+                <div class="user-section">
+                    <div class="github-status">
+                        <span class="status-icon">📱</span>
+                        <span class="status-text">GitHub Mode</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        
+        <!-- Calendar View -->
+        <section id="calendarView" class="view-section active">
+            <div class="calendar-container">
+                <div class="calendar-header">
+                    <div class="calendar-nav">
+                        <button id="prevMonth" class="nav-btn" aria-label="Previous month">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="15,18 9,12 15,6"></polyline>
+                            </svg>
+                        </button>
+                        <h2 id="currentMonth" class="current-month">January 2024</h2>
+                        <button id="nextMonth" class="nav-btn" aria-label="Next month">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="9,18 15,12 9,6"></polyline>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div class="calendar-actions">
+                        <div class="jump-to-date">
+                            <input type="date" id="jumpDate" placeholder="Jump to date" aria-label="Select date to jump to">
+                            <button id="jumpBtn" class="jump-btn">Go</button>
+                        </div>
+                        <button id="todayBtn" class="today-btn">Today</button>
+                    </div>
+                </div>
+                
+                <div class="weekdays">
+                    <div>Sun</div>
+                    <div>Mon</div>
+                    <div>Tue</div>
+                    <div>Wed</div>
+                    <div>Thu</div>
+                    <div>Fri</div>
+                    <div>Sat</div>
+                </div>
+                
+                <div id="calendar" class="calendar-grid">
+                    <!-- Calendar days will be populated by JavaScript -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Weekly Progress View -->
+        <section id="weeklyView" class="view-section">
+            <div class="weekly-container">
+                <div class="weekly-header">
+                    <div class="weekly-header-content">
+                        <div class="weekly-title-section">
+                            <h1 class="weekly-title">Weekly Progress</h1>
+                            <p class="weekly-subtitle">Track your habits and build consistency</p>
+                        </div>
+                        <div class="weekly-progress-summary">
+                            <div class="weekly-progress-circle">
+                                <svg width="100" height="100" class="weekly-progress-ring">
+                                    <circle cx="50" cy="50" r="45" class="weekly-progress-ring-background"></circle>
+                                    <circle cx="50" cy="50" r="45" class="weekly-progress-ring-fill" id="weeklyProgressRing"></circle>
+                                </svg>
+                                <div class="weekly-progress-text">
+                                    <span id="weeklyProgressPercent" class="weekly-progress-percent">0%</span>
+                                    <span class="weekly-progress-label">This Week</span>
+                                </div>
+                            </div>
+                            <div class="weekly-progress-stats">
+                                <div class="weekly-stat-item">
+                                    <span id="weeklyCompletedDays" class="weekly-stat-number">0</span>
+                                    <span class="weekly-stat-label">Days Active</span>
+                                </div>
+                                <div class="weekly-stat-item">
+                                    <span id="weeklyTotalHabits" class="weekly-stat-number">0</span>
+                                    <span class="weekly-stat-label">Total Habits</span>
+                                </div>
+                                <div class="weekly-stat-item">
+                                    <span id="weeklyStreak" class="weekly-stat-number">0</span>
+                                    <span class="weekly-stat-label">Day Streak</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="weekly-actions-bar">
+                    <div class="actions-left">
+                        <button id="addHabitBtn" class="action-btn primary">+ Add Habit</button>
+                        <button id="viewStatsBtn" class="action-btn secondary">📊 View Stats</button>
+                    </div>
+                    <div class="actions-right">
+                        <button id="exportDataBtn" class="action-btn secondary">📤 Export</button>
+                        <button id="importDataBtn" class="action-btn secondary">📥 Import</button>
+                    </div>
+                </div>
+                
+                <div id="weeklyHabitsGrid" class="weekly-habits-grid">
+                    <!-- Weekly habits grid will be populated by JavaScript -->
+                </div>
+            </div>
+        </section>
+
+        <!-- CRM View -->
+        <section id="crmView" class="view-section">
+            <div class="crm-container">
+                <div class="crm-header">
+                    <h1>📋 Project CRM</h1>
+                    <p>Manage your projects, tasks, and deadlines</p>
+                </div>
+                
+                <div class="crm-actions">
+                    <button id="addProjectBtn" class="action-btn primary">+ New Project</button>
+                    <button id="exportCRMBtn" class="action-btn secondary">📤 Export CRM</button>
+                    <button id="importCRMBtn" class="action-btn secondary">📥 Import CRM</button>
+                </div>
+                
+                <div id="crmProjectsList" class="crm-projects-list">
+                    <!-- CRM projects will be populated by JavaScript -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Habits View -->
+        <section id="habitsView" class="view-section">
+            <div class="habits-container">
+                <div class="habits-header">
+                    <h1>🎯 Daily Habits</h1>
+                    <p>Build consistent habits for long-term success</p>
+                </div>
+                
+                <div class="habits-actions">
+                    <button id="addHabitBtn2" class="action-btn primary">+ Add Habit</button>
+                    <button id="viewHabitStatsBtn" class="action-btn secondary">📊 Stats</button>
+                </div>
+                
+                <div id="habitsList" class="habits-list">
+                    <!-- Habits will be populated by JavaScript -->
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Toast Notifications -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Scripts -->
+    <script src="script.js"></script>
+    <script src="crm-script.js"></script>
+    
+    <!-- GitHub Mode Script -->
+    <script>
+        // GitHub Mode Configuration
+        console.log('🚀 Productive Cloud starting in GitHub Mode...');
+        
+        // Disable backend-dependent features
+        window.GITHUB_MODE = true;
+        
+        // Initialize basic functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('✅ Productive Cloud loaded successfully in GitHub Mode!');
+            
+            // Show success message
+            if (window.productiveCloud && window.productiveCloud.showToast) {
+                window.productiveCloud.showToast('📱 Running in GitHub Mode - All features working!', 'success');
+            }
+            
+            // Initialize navigation
+            initializeNavigation();
+        });
+        
+        function initializeNavigation() {
+            const navBtns = document.querySelectorAll('.nav-btn');
+            const viewSections = document.querySelectorAll('.view-section');
+            
+            navBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const targetView = btn.getAttribute('data-view');
+                    
+                    // Update active nav button
+                    navBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    
+                    // Show target view
+                    viewSections.forEach(section => {
+                        section.classList.remove('active');
+                        if (section.id === targetView) {
+                            section.classList.add('active');
+                        }
+                    });
+                });
+            });
+        }
+        
+        // Simple toast function for GitHub mode
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.textContent = message;
+            
+            document.getElementById('toastContainer').appendChild(toast);
+            
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+        
+        // Make toast available globally
+        window.showToast = showToast;
+    </script>
+</body>
+</html>
