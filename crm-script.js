@@ -39,6 +39,13 @@ class ProjectCRM {
             this.updateStats();
             this.renderProjects();
             this.initTimer();
+            
+            // Check for any newly imported data
+            this.checkForImportedData();
+            
+            // Check if data was recently imported from main app
+            this.checkForMainAppImport();
+            
             console.log('Project CRM initialized successfully');
         } catch (error) {
             console.error('Failed to initialize:', error);
@@ -63,6 +70,8 @@ class ProjectCRM {
         if (addProjectBtn) {
             addProjectBtn.addEventListener('click', () => this.showProjectModal());
         }
+
+
 
         // Filter
         const statusFilter = document.getElementById('statusFilter');
@@ -248,10 +257,41 @@ class ProjectCRM {
 
     loadProjects() {
         try {
+            console.log('🔍 loadProjects() called');
             const saved = localStorage.getItem('projectCRM_projects');
-            this.projects = saved ? JSON.parse(saved) : [];
+            console.log('📦 Raw localStorage data:', saved);
+            
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                console.log('📋 Parsed projects:', parsed);
+                
+                // Validate and clean the projects data
+                if (Array.isArray(parsed)) {
+                    this.projects = parsed.map(project => ({
+                        id: project.id || this.generateId(),
+                        name: project.name || 'Unnamed Project',
+                        status: project.status || 'active',
+                        progress: project.progress || 0,
+                        cost: project.cost || 0,
+                        notes: project.notes || '',
+                        tasks: Array.isArray(project.tasks) ? project.tasks : [],
+                        createdAt: project.createdAt || new Date().toISOString(),
+                        updatedAt: project.updatedAt || new Date().toISOString()
+                    }));
+                    console.log('✅ Projects loaded and validated into instance:', this.projects);
+                    
+                    // Additional validation and repair
+                    this.validateAndRepairProjects();
+                } else {
+                    console.log('⚠️ Parsed data is not an array, initializing empty projects');
+                    this.projects = [];
+                }
+            } else {
+                console.log('⚠️ No projects found in localStorage');
+                this.projects = [];
+            }
         } catch (error) {
-            console.error('Error loading projects:', error);
+            console.error('❌ Error loading projects:', error);
             this.projects = [];
         }
     }
@@ -261,6 +301,270 @@ class ProjectCRM {
             localStorage.setItem('projectCRM_projects', JSON.stringify(this.projects));
         } catch (error) {
             console.error('Error saving projects:', error);
+        }
+    }
+
+    /**
+     * Check if data was recently imported from the main app
+     */
+    checkForMainAppImport() {
+        try {
+            const importFlag = localStorage.getItem('crm_data_imported');
+            const importTimestamp = localStorage.getItem('crm_import_timestamp');
+            
+            if (importFlag === 'true' && importTimestamp) {
+                console.log('🔄 Data import detected from main app, timestamp:', importTimestamp);
+                
+                // Clear the import flag
+                localStorage.removeItem('crm_data_imported');
+                localStorage.removeItem('crm_import_timestamp');
+                
+                // Force a complete refresh from localStorage
+                console.log('🔄 Performing forced refresh due to main app import...');
+                this.forceRefreshFromStorage();
+                
+                // Show a notification
+                if (typeof this.showToast === 'function') {
+                    this.showToast('🔄 CRM data refreshed from backup!', 'success');
+                } else {
+                    alert('🔄 CRM data refreshed from backup!');
+                }
+            }
+        } catch (error) {
+            console.error('Error checking for main app import:', error);
+        }
+    }
+
+    /**
+     * Check for any newly imported data and refresh if needed
+     */
+    checkForImportedData() {
+        try {
+            console.log('🔍 Checking for newly imported CRM data...');
+            console.log('📋 Current instance projects:', this.projects);
+            
+            // Check if projects were imported
+            const storedProjects = localStorage.getItem('projectCRM_projects');
+            console.log('📦 Stored projects in localStorage:', storedProjects);
+            
+            if (storedProjects) {
+                try {
+                    const parsedProjects = JSON.parse(storedProjects);
+                    console.log('📋 Parsed stored projects:', parsedProjects);
+                    
+                    if (Array.isArray(parsedProjects) && parsedProjects.length > 0 && 
+                        JSON.stringify(parsedProjects) !== JSON.stringify(this.projects)) {
+                        console.log('🔄 New projects detected, refreshing...');
+                        console.log('📊 Projects before update:', this.projects);
+                        
+                        // Validate and clean the projects data
+                        this.projects = parsedProjects.map(project => ({
+                            id: project.id || this.generateId(),
+                            name: project.name || 'Unnamed Project',
+                            status: project.status || 'active',
+                            progress: project.progress || 0,
+                            cost: project.cost || 0,
+                            notes: project.notes || '',
+                            tasks: Array.isArray(project.tasks) ? project.tasks : [],
+                            createdAt: project.createdAt || new Date().toISOString(),
+                            updatedAt: project.updatedAt || new Date().toISOString()
+                        }));
+                        
+                        console.log('📊 Projects after update and validation:', this.projects);
+                        
+                        // Validate and repair the data structure
+                        this.validateAndRepairProjects();
+                        
+                        this.renderProjects();
+                        this.updateStats();
+                    } else {
+                        console.log('ℹ️ No new projects detected or projects are identical');
+                    }
+                } catch (parseError) {
+                    console.error('❌ Error parsing stored projects:', parseError);
+                }
+            } else {
+                console.log('⚠️ No projects found in localStorage');
+            }
+            
+            // Check if theme was imported
+            const storedTheme = localStorage.getItem('projectCRM_theme');
+            if (storedTheme && storedTheme !== this.currentTheme) {
+                console.log('🎨 New theme detected, applying...');
+                this.currentTheme = storedTheme;
+                this.applyTheme();
+            }
+            
+            // Check if timer data was imported
+            const storedTimerState = localStorage.getItem('crm_timer_state');
+            if (storedTimerState) {
+                try {
+                    const parsedTimerState = JSON.parse(storedTimerState);
+                    if (parsedTimerState.totalTime !== this.timer.totalTime) {
+                        console.log('⏱️ New timer data detected, updating...');
+                        this.timer.totalTime = parsedTimerState.totalTime;
+                    }
+                } catch (e) {
+                    console.warn('Failed to parse timer state:', e);
+                }
+            }
+            
+            console.log('✅ Import data check completed');
+        } catch (error) {
+            console.error('Error checking for imported data:', error);
+        }
+    }
+
+    /**
+     * Show a toast notification
+     */
+    showToast(message, type = 'info') {
+        try {
+            // Create toast element
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.textContent = message;
+            
+            // Add styles
+            Object.assign(toast.style, {
+                position: 'fixed',
+                top: '20px',
+                right: '20px',
+                padding: '12px 20px',
+                borderRadius: '6px',
+                color: 'white',
+                fontWeight: '500',
+                zIndex: '10000',
+                transform: 'translateX(100%)',
+                transition: 'transform 0.3s ease',
+                maxWidth: '300px',
+                wordWrap: 'break-word'
+            });
+            
+            // Set background color based on type
+            switch (type) {
+                case 'success':
+                    toast.style.backgroundColor = '#28a745';
+                    break;
+                case 'error':
+                    toast.style.backgroundColor = '#dc3545';
+                    break;
+                case 'warning':
+                    toast.style.backgroundColor = '#ffc107';
+                    toast.style.color = '#333';
+                    break;
+                default:
+                    toast.style.backgroundColor = '#17a2b8';
+            }
+            
+            // Add to DOM
+            document.body.appendChild(toast);
+            
+            // Animate in
+            setTimeout(() => {
+                toast.style.transform = 'translateX(0)';
+            }, 100);
+            
+            // Remove after 3 seconds
+            setTimeout(() => {
+                toast.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    if (document.body.contains(toast)) {
+                        document.body.removeChild(toast);
+                    }
+                }, 300);
+            }, 3000);
+            
+        } catch (error) {
+            console.error('Error showing toast:', error);
+            // Fallback to alert
+            alert(message);
+        }
+    }
+
+    /**
+     * Validate and repair project data structure
+     */
+    validateAndRepairProjects() {
+        try {
+            console.log('🔧 Validating and repairing project data...');
+            
+            if (!Array.isArray(this.projects)) {
+                console.log('⚠️ Projects is not an array, initializing...');
+                this.projects = [];
+                return;
+            }
+            
+            let repairedCount = 0;
+            this.projects = this.projects.map(project => {
+                const repaired = {
+                    id: project.id || this.generateId(),
+                    name: project.name || 'Unnamed Project',
+                    status: project.status || 'active',
+                    progress: project.progress || 0,
+                    cost: project.cost || 0,
+                    notes: project.notes || '',
+                    tasks: Array.isArray(project.tasks) ? project.tasks : [],
+                    createdAt: project.createdAt || new Date().toISOString(),
+                    updatedAt: project.updatedAt || new Date().toISOString()
+                };
+                
+                // Check if any fields were repaired
+                if (JSON.stringify(repaired) !== JSON.stringify(project)) {
+                    repairedCount++;
+                    console.log(`🔧 Repaired project: ${project.name || 'Unnamed'}`);
+                }
+                
+                return repaired;
+            });
+            
+            if (repairedCount > 0) {
+                console.log(`✅ Repaired ${repairedCount} projects`);
+                this.saveProjects(); // Save the repaired data
+            } else {
+                console.log('✅ All projects are valid');
+            }
+            
+        } catch (error) {
+            console.error('Error validating and repairing projects:', error);
+        }
+    }
+
+    /**
+     * Force refresh all data from localStorage (useful for sync operations)
+     */
+    forceRefreshFromStorage() {
+        try {
+            console.log('🔄 Force refreshing CRM data from localStorage...');
+            console.log('📋 Projects before refresh:', this.projects);
+            
+            // Reload all data
+            this.loadProjects();
+            console.log('📋 Projects after loadProjects():', this.projects);
+            
+            // Validate and repair data
+            this.validateAndRepairProjects();
+            
+            this.loadTheme();
+            this.loadTimerState();
+            this.loadSavedSessions();
+            
+            // Refresh interface
+            console.log('🖼️ Refreshing interface...');
+            this.renderProjects();
+            this.updateStats();
+            this.initTimer();
+            
+            console.log('✅ Force refresh completed');
+            console.log('📋 Final projects state:', this.projects);
+            
+            // Additional verification
+            if (this.projects.length > 0) {
+                console.log('📊 Sample project structure:', this.projects[0]);
+                console.log('📊 Sample project tasks:', this.projects[0].tasks);
+            }
+        } catch (error) {
+            console.error('Error during force refresh:', error);
         }
     }
 
@@ -286,28 +590,42 @@ class ProjectCRM {
     }
 
     renderProjects(filter = 'all') {
+        console.log('🎨 renderProjects() called with filter:', filter);
+        console.log('📋 Current projects array:', this.projects);
+        
         const projectsList = document.getElementById('projectsList');
         const emptyState = document.getElementById('emptyState');
         
-        if (!projectsList) return;
+        if (!projectsList) {
+            console.log('❌ projectsList element not found');
+            return;
+        }
 
         let filteredProjects = this.projects;
         if (filter !== 'all') {
             filteredProjects = this.projects.filter(p => p.status === filter);
         }
+        
+        console.log('🔍 Filtered projects:', filteredProjects);
 
         if (filteredProjects.length === 0) {
+            console.log('⚠️ No projects to display, showing empty state');
+            console.log('🔍 Current projects array:', this.projects);
+            console.log('🔍 Filter applied:', filter);
             projectsList.style.display = 'none';
             if (emptyState) emptyState.style.display = 'block';
             return;
         }
 
+        console.log('✅ Rendering projects:', filteredProjects.length);
         projectsList.style.display = 'flex';
         if (emptyState) emptyState.style.display = 'none';
 
         projectsList.innerHTML = filteredProjects.map(project => 
             this.createProjectHTML(project)
         ).join('');
+        
+        console.log('🎯 Projects rendered successfully');
     }
 
     createProjectHTML(project) {
@@ -466,11 +784,18 @@ class ProjectCRM {
         if (this.currentProject) {
             const index = this.projects.findIndex(p => p.id === this.currentProject.id);
             if (index !== -1) {
-                this.projects[index] = { ...this.currentProject, ...projectData };
+                // Preserve existing tasks and other important data
+                const existingProject = this.projects[index];
+                this.projects[index] = { 
+                    ...existingProject, 
+                    ...projectData,
+                    tasks: existingProject.tasks || [] // Ensure tasks are preserved
+                };
             }
         } else {
             projectData.id = this.generateId();
             projectData.createdAt = new Date().toISOString();
+            projectData.tasks = []; // Initialize empty tasks array
             this.projects.push(projectData);
         }
 
@@ -2234,6 +2559,69 @@ class ProjectCRM {
             this.renderSavedSessions();
         }
     }
+
+    /**
+     * Export all CRM data to JSON file
+     */
+    exportCRMData() {
+        try {
+            const exportData = {
+                projects: this.projects,
+                theme: this.currentTheme,
+                timer: {
+                    totalTime: this.timer.totalTime,
+                    savedSessions: this.savedSessions
+                },
+                exportDate: new Date().toISOString(),
+                version: '1.0',
+                module: 'Project CRM'
+            };
+
+            const dataStr = JSON.stringify(exportData, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(dataBlob);
+            link.download = `productive-cloud-crm-backup-${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            
+            URL.revokeObjectURL(link.href);
+            
+            // Show success message
+            if (typeof this.showToast === 'function') {
+                this.showToast('✅ CRM data exported successfully!', 'success');
+            } else {
+                alert('✅ CRM data exported successfully!');
+            }
+            
+            console.log('CRM data exported:', exportData);
+            return exportData;
+            
+        } catch (error) {
+            console.error('Failed to export CRM data:', error);
+            if (typeof this.showToast === 'function') {
+                this.showToast('❌ Failed to export CRM data', 'error');
+            } else {
+                alert('❌ Failed to export CRM data');
+            }
+            return null;
+        }
+    }
+
+    /**
+     * Get CRM data for unified export (used by main app)
+     */
+    getCRMDataForExport() {
+        return {
+            projects: this.projects,
+            theme: this.currentTheme,
+            timer: {
+                totalTime: this.timer.totalTime,
+                savedSessions: this.savedSessions
+            },
+            module: 'Project CRM'
+        };
+    }
 }
 
 // Initialize the application
@@ -2241,3 +2629,41 @@ const projectCRM = new ProjectCRM();
 
 // Make it globally accessible for onclick handlers
 window.projectCRM = projectCRM;
+
+// ===== GLOBAL FUNCTIONS FOR CRM SYNC ===== //
+
+/**
+ * Force refresh CRM data from localStorage (useful for sync operations)
+ */
+function forceRefreshCRM() {
+    if (window.projectCRM) {
+        window.projectCRM.forceRefreshFromStorage();
+        console.log('✅ CRM force refresh completed');
+    } else {
+        console.log('⚠️ CRM module not loaded yet');
+    }
+}
+
+/**
+ * Check CRM data status (useful for debugging)
+ */
+function checkCRMDataStatus() {
+    const projects = localStorage.getItem('projectCRM_projects');
+    const theme = localStorage.getItem('projectCRM_theme');
+    const timerState = localStorage.getItem('crm_timer_state');
+    
+    console.log('🔍 CRM Data Status:');
+    console.log('Projects:', projects ? JSON.parse(projects) : 'None');
+    console.log('Theme:', theme);
+    console.log('Timer State:', timerState ? JSON.parse(timerState) : 'None');
+    
+    if (window.projectCRM) {
+        console.log('CRM Module Status:', {
+            projects: window.projectCRM.projects,
+            theme: window.projectCRM.currentTheme,
+            timer: window.projectCRM.timer
+        });
+    } else {
+        console.log('CRM Module: Not loaded');
+    }
+}
