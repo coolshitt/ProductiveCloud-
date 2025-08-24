@@ -101,3 +101,11 @@ Thumbs.db
 # Backup files
 *.bak
 *.backup
+
+# Configuration files with sensitive data
+config.js
+.env
+.env.local
+.env.production
+secrets.json
+api-keys.json

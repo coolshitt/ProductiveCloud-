@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Drive Sync Panel - Productive Cloud</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .sync-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .sync-title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .sync-content {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .status-connected { background: #28a745; }
+        .status-disconnected { background: #dc3545; }
+        .status-syncing { background: #ffc107; animation: pulse 1.5s infinite; }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 0.9em;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        .btn-success { background: #28a745; }
+        .btn-success:hover { background: #218838; }
+        .btn-warning { background: #ffc107; color: #212529; }
+        .btn-warning:hover { background: #e0a800; }
+        .btn-danger { background: #dc3545; }
+        .btn-danger:hover { background: #c82333; }
+        
+        .sync-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 15px 0;
+        }
+        .info-item {
+            background: #e9ecef;
+            padding: 10px;
+            border-radius: 4px;
+            border-left: 4px solid #007bff;
+        }
+        .info-label {
+            font-weight: bold;
+            color: #495057;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+        .info-value {
+            color: #212529;
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+        
+        .sync-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        .sync-log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 0.8em;
+        }
+        .log-entry {
+            margin: 2px 0;
+            padding: 2px 0;
+        }
+        .log-time {
+            color: #6c757d;
+            margin-right: 10px;
+        }
+        .log-success { color: #28a745; }
+        .log-error { color: #dc3545; }
+        .log-warning { color: #ffc107; }
+        .log-info { color: #17a2b8; }
+        
+        .setup-instructions {
+            background: #e3f2fd;
+            border: 1px solid #2196f3;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .setup-title {
+            font-weight: bold;
+            color: #1976d2;
+            margin-bottom: 10px;
+        }
+        .setup-step {
+            margin: 8px 0;
+            padding-left: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>☁️ Google Drive Sync - Productive Cloud</h1>
+    
+    <div class="sync-panel">
+        <div class="sync-title">
+            <span class="status-indicator" id="connectionStatus"></span>
+            <span id="connectionText">Google Drive Connection</span>
+        </div>
+        
+        <div class="sync-content">
+            <div id="connectionInfo">
+                <p>Connect to Google Drive for automatic online backup and cross-device synchronization.</p>
+                <div id="setupStatus">
+                    <!-- Setup status will be shown here -->
+                </div>
+                <div class="sync-actions">
+                    <button onclick="googleDriveSync.signIn()" id="signInBtn">🔐 Sign In to Google</button>
+                    <button onclick="googleDriveSync.signOut()" id="signOutBtn" style="display: none;">🚪 Sign Out</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="sync-panel" id="syncStatusPanel" style="display: none;">
+        <div class="sync-title">📊 Sync Status</div>
+        
+        <div class="sync-info" id="syncInfo">
+            <!-- Sync information will be populated here -->
+        </div>
+        
+        <div class="sync-actions">
+            <button onclick="googleDriveSync.manualSync()" class="btn-success">🔄 Manual Sync</button>
+            <button onclick="googleDriveSync.manualRestore()" class="btn-warning">📥 Restore from Cloud</button>
+            <button onclick="refreshSyncStatus()" class="btn-info">🔄 Refresh Status</button>
+        </div>
+    </div>
+    
+    <div class="sync-panel">
+        <div class="sync-title">📝 Sync Log</div>
+        <div class="sync-log" id="syncLog">
+            <div class="log-entry log-info">
+                <span class="log-time">[System]</span>
+                <span>Google Drive sync panel loaded</span>
+            </div>
+        </div>
+        <button onclick="clearSyncLog()">🧹 Clear Log</button>
+    </div>
+    
+    <div class="sync-panel">
+        <div class="sync-title">⚙️ Setup Instructions</div>
+        <div class="setup-instructions">
+            <div class="setup-title">To enable Google Drive sync:</div>
+            <div class="setup-step">1. Create a Google Cloud Project</div>
+            <div class="setup-step">2. Enable Google Drive API</div>
+            <div class="setup-step">3. Create OAuth 2.0 credentials</div>
+            <div class="setup-step">4. Update clientId and apiKey in google-sync.js</div>
+            <div class="setup-step">5. Sign in and start syncing!</div>
+        </div>
+    </div>
+    
+    <div class="sync-panel">
+        <div class="sync-title">🔗 Quick Actions</div>
+        <div class="sync-actions">
+            <button onclick="window.open('index.html', '_blank')">🏠 Open Main App</button>
+            <button onclick="window.open('crm.html', '_blank')">🏢 Open CRM</button>
+            <button onclick="testGoogleSync()">🧪 Test Sync</button>
+        </div>
+    </div>
+    
+    <div class="sync-panel">
+        <div class="sync-title">🔍 Debug Information</div>
+        <div class="sync-content">
+            <div id="debugInfo">
+                <p>Checking system status...</p>
+            </div>
+            <div class="sync-actions">
+                <button onclick="checkSystemStatus()">🔍 Check System Status</button>
+                <button onclick="forceReloadSync()">🔄 Force Reload Sync</button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://apis.google.com/js/api.js"></script>
+    <script src="google-sync.js"></script>
+    <script>
+        let syncStatusInterval = null;
+        
+        // Initialize sync panel
+        document.addEventListener('DOMContentLoaded', () => {
+            addLogEntry('🚀 Google Drive sync panel initialized', 'info');
+            
+            // Wait a bit for scripts to load, then check status
+            setTimeout(() => {
+                checkSystemStatus();
+                checkSetupStatus();
+                updateConnectionStatus();
+                
+                // Start status monitoring
+                startStatusMonitoring();
+            }, 1000);
+        });
+        
+        // Check setup status
+        function checkSetupStatus() {
+            const setupStatus = document.getElementById('setupStatus');
+            
+            if (window.googleDriveSync) {
+                if (window.googleDriveSync.apiKey === 'YOUR_GOOGLE_API_KEY') {
+                    setupStatus.innerHTML = `
+                        <div style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 4px; padding: 15px; margin: 15px 0;">
+                            <h4 style="margin: 0 0 10px 0; color: #856404;">⚠️ Setup Required</h4>
+                            <p style="margin: 0 0 10px 0; color: #856404;">
+                                Google Drive sync is not fully configured. You need to:
+                            </p>
+                            <ol style="margin: 0; padding-left: 20px; color: #856404;">
+                                <li>Create an API Key in Google Cloud Console</li>
+                                <li>Update the apiKey in google-sync.js</li>
+                                <li>Refresh this page</li>
+                            </ol>
+                            <p style="margin: 10px 0 0 0; color: #856404;">
+                                <strong>Current Status:</strong> ✅ Client ID configured, ❌ API Key missing
+                            </p>
+                        </div>
+                    `;
+                    addLogEntry('⚠️ API Key not configured. Please complete setup.', 'warning');
+                } else {
+                    setupStatus.innerHTML = `
+                        <div style="background: #d4edda; border: 1px solid #c3e6cb; border-radius: 4px; padding: 15px; margin: 15px 0;">
+                            <h4 style="margin: 0 0 10px 0; color: #155724;">✅ Setup Complete</h4>
+                            <p style="margin: 0; color: #155724;">
+                                Google Drive sync is properly configured and ready to use!
+                            </p>
+                        </div>
+                    `;
+                    addLogEntry('✅ Google Drive sync setup complete', 'success');
+                }
+            }
+        }
+        
+        // Start monitoring sync status
+        function startStatusMonitoring() {
+            syncStatusInterval = setInterval(() => {
+                updateConnectionStatus();
+                updateSyncInfo();
+            }, 5000); // Update every 5 seconds
+        }
+        
+        // Update connection status display
+        function updateConnectionStatus() {
+            const statusIndicator = document.getElementById('connectionStatus');
+            const connectionText = document.getElementById('connectionText');
+            const signInBtn = document.getElementById('signInBtn');
+            const signOutBtn = document.getElementById('signOutBtn');
+            const syncStatusPanel = document.getElementById('syncStatusPanel');
+            
+            if (window.googleDriveSync && window.googleDriveSync.isAuthenticated) {
+                statusIndicator.className = 'status-indicator status-connected';
+                connectionText.textContent = 'Connected to Google Drive';
+                signInBtn.style.display = 'none';
+                signOutBtn.style.display = 'inline-block';
+                syncStatusPanel.style.display = 'block';
+                addLogEntry('✅ Connected to Google Drive', 'success');
+            } else {
+                statusIndicator.className = 'status-indicator status-disconnected';
+                connectionText.textContent = 'Not Connected';
+                signInBtn.style.display = 'inline-block';
+                signOutBtn.style.display = 'none';
+                syncStatusPanel.style.display = 'none';
+            }
+        }
+        
+        // Update sync information display
+        function updateSyncInfo() {
+            if (!window.googleDriveSync || !window.googleDriveSync.isAuthenticated) {
+                return;
+            }
+            
+            const syncInfo = document.getElementById('syncInfo');
+            const status = window.googleDriveSync.getSyncStatus();
+            
+            syncInfo.innerHTML = `
+                <div class="info-item">
+                    <div class="info-label">Last Sync</div>
+                    <div class="info-value">${status.lastSyncTime ? new Date(status.lastSyncTime).toLocaleString() : 'Never'}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Last File</div>
+                    <div class="info-value">${status.lastSyncFile || 'None'}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Sync Status</div>
+                    <div class="info-value">${status.syncStatus}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Auto-Sync</div>
+                    <div class="info-value">${window.googleDriveSync.syncInterval ? 'Active' : 'Inactive'}</div>
+                </div>
+            `;
+        }
+        
+        // Add log entry
+        function addLogEntry(message, type = 'info') {
+            const syncLog = document.getElementById('syncLog');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry log-${type}`;
+            logEntry.innerHTML = `
+                <span class="log-time">[${timestamp}]</span>
+                <span>${message}</span>
+            `;
+            
+            syncLog.appendChild(logEntry);
+            syncLog.scrollTop = syncLog.scrollHeight;
+        }
+        
+        // Clear sync log
+        function clearSyncLog() {
+            const syncLog = document.getElementById('syncLog');
+            syncLog.innerHTML = '<div class="log-entry log-info"><span class="log-time">[System]</span><span>Log cleared</span></div>';
+        }
+        
+        // Refresh sync status
+        function refreshSyncStatus() {
+            updateConnectionStatus();
+            updateSyncInfo();
+            addLogEntry('🔄 Sync status refreshed', 'info');
+        }
+        
+        // Test Google sync functionality
+        async function testGoogleSync() {
+            if (!window.googleDriveSync) {
+                addLogEntry('❌ Google Drive sync not available', 'error');
+                return;
+            }
+            
+            if (!window.googleDriveSync.isAuthenticated) {
+                addLogEntry('⚠️ Please sign in to Google Drive first', 'warning');
+                return;
+            }
+            
+            addLogEntry('🧪 Testing Google Drive sync...', 'info');
+            
+            try {
+                const syncResult = await window.googleDriveSync.manualSync();
+                if (syncResult) {
+                    addLogEntry('✅ Manual sync test successful', 'success');
+                } else {
+                    addLogEntry('❌ Manual sync test failed', 'error');
+                }
+            } catch (error) {
+                addLogEntry(`❌ Sync test error: ${error.message}`, 'error');
+            }
+        }
+        
+        // Check system status
+        function checkSystemStatus() {
+            const debugInfo = document.getElementById('debugInfo');
+            let status = '<h4>🔍 System Status Check</h4>';
+            
+            // Check Google API
+            if (typeof gapi !== 'undefined') {
+                status += '<p>✅ Google API (gapi) loaded</p>';
+            } else {
+                status += '<p>❌ Google API (gapi) not loaded</p>';
+            }
+            
+            // Check Google Drive Sync
+            if (window.googleDriveSync) {
+                status += '<p>✅ Google Drive Sync object exists</p>';
+                status += `<p>📋 Client ID: ${window.googleDriveSync.clientId ? 'Configured' : 'Missing'}</p>`;
+                status += `<p>🔑 API Key: ${window.googleDriveSync.apiKey === 'YOUR_GOOGLE_API_KEY' ? 'Missing' : 'Configured'}</p>`;
+                status += `<p>🔐 Authenticated: ${window.googleDriveSync.isAuthenticated ? 'Yes' : 'No'}</p>`;
+            } else {
+                status += '<p>❌ Google Drive Sync object not found</p>';
+            }
+            
+            // Check scripts
+            const scripts = document.querySelectorAll('script');
+            let googleScriptFound = false;
+            let syncScriptFound = false;
+            
+            scripts.forEach(script => {
+                if (script.src.includes('apis.google.com')) googleScriptFound = true;
+                if (script.src.includes('google-sync.js')) syncScriptFound = true;
+            });
+            
+            status += `<p>📜 Google API Script: ${googleScriptFound ? 'Loaded' : 'Missing'}</p>`;
+            status += `<p>📜 Sync Script: ${syncScriptFound ? 'Loaded' : 'Missing'}</p>`;
+            
+            debugInfo.innerHTML = status;
+            addLogEntry('🔍 System status checked', 'info');
+        }
+        
+        // Force reload sync
+        function forceReloadSync() {
+            addLogEntry('🔄 Forcing sync reload...', 'info');
+            
+            // Remove existing sync object
+            if (window.googleDriveSync) {
+                delete window.googleDriveSync;
+                addLogEntry('🗑️ Removed existing sync object', 'info');
+            }
+            
+            // Reload the sync script
+            const script = document.createElement('script');
+            script.src = 'google-sync.js';
+            script.onload = () => {
+                addLogEntry('✅ Sync script reloaded', 'success');
+                checkSystemStatus();
+            };
+            script.onerror = () => {
+                addLogEntry('❌ Failed to reload sync script', 'error');
+            };
+            
+            document.head.appendChild(script);
+        }
+        
+        // Override Google Drive sync methods to add logging
+        if (window.googleDriveSync) {
+            const originalSync = window.googleDriveSync.syncToCloud;
+            const originalRestore = window.googleDriveSync.restoreFromCloud;
+            
+            window.googleDriveSync.syncToCloud = async function() {
+                addLogEntry('🔄 Starting cloud sync...', 'info');
+                try {
+                    const result = await originalSync.call(this);
+                    if (result) {
+                        addLogEntry('✅ Cloud sync completed successfully', 'success');
+                    } else {
+                        addLogEntry('❌ Cloud sync failed', 'error');
+                    }
+                    return result;
+                } catch (error) {
+                    addLogEntry(`❌ Cloud sync error: ${error.message}`, 'error');
+                    throw error;
+                }
+            };
+            
+            window.googleDriveSync.restoreFromCloud = async function() {
+                addLogEntry('📥 Starting cloud restore...', 'info');
+                try {
+                    const result = await originalRestore.call(this);
+                    if (result) {
+                        addLogEntry('✅ Cloud restore completed successfully', 'success');
+                    } else {
+                        addLogEntry('❌ Cloud restore failed', 'error');
+                    }
+                    return result;
+                } catch (error) {
+                    addLogEntry(`❌ Cloud restore error: ${error.message}`, 'error');
+                    throw error;
+                }
+            };
+        }
+    </script>
+</body>
+</html>
